@@ -1,0 +1,12 @@
+{
+  "name": "logosFortuna-skill",
+  "version": "1.0.0",
+  "description": "LogosFortuna-Skill - UDIV meta-orkestrasyon sistemi",
+  "author": "Haluk Celebi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Halukc1974/LogosFortuna.git"
+  },
+  "homepage": "https://github.com/Halukc1974/LogosFortuna"
+}

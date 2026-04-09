@@ -1,0 +1,39 @@
+{
+  "description": "LogosFortuna-Skill hooks - oturum baglami, syntax kontrolu ve ogrenme onerileri",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/oturum-baslat.sh\"",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Oturumda dosya degisiklikleri yapildi mi kontrol et. Varsa kullaniciya '/lf-dogrula' onerisi sun."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/duzenleme-sonrasi.sh\"",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  }
+}

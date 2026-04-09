@@ -1,0 +1,12 @@
+{
+  "name": "logosFortuna-skill",
+  "version": "1.0.1",
+  "description": "LogosFortuna-Skill - Kisisel iteratif anlama ve uygulama meta-orkestrasyon sistemi. UDIV dongusu ile derin anlama, tasarim, artimsal uygulama ve dogrulama.",
+  "author": {
+    "name": "Haluk Celebi"
+  },
+  "homepage": "https://github.com/Halukc1974/LogosFortuna",
+  "repository": "https://github.com/Halukc1974/LogosFortuna",
+  "license": "MIT",
+  "keywords": ["meta-skill", "orkestrasyon", "iteratif", "kisisel", "udiv"]
+}
