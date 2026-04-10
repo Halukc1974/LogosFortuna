@@ -28,6 +28,27 @@ Claude Code'u yeniden baslat. Plugin otomatik olarak taninacak.
 - **3 Referans**: UDIV protokol, arac orkestrasyon, kalite kapilari
 - **Memory Entegrasyonu**: Oturum arasi ogrenme
 
+## Dongu Koruma
+
+Kisir dongu ve sonsuz tekrarlarl onlemek icin yerlesik limitler:
+
+| Mekanizma | Limit | Davranis |
+|-----------|-------|----------|
+| Faz geri donusu | Max 2 / faz cifti | Kullaniciya eskalasyon |
+| Artim denemesi | Max 3 / artim | Durdur ve raporla |
+| Dogrulama-Uygulama turu | Max 2 tur | Kalan sorunlari kullaniciya sun |
+| Faz 1 kesfetme | Max 5 arac cagrisi | Mevcut bilgiyle ilerle |
+
+## Gorev Siniflandirma
+
+UDIV dongusu gorev karmasikligina gore adapte olur:
+
+| Seviye | Akis |
+|--------|------|
+| **Basit** | Anla (hafif) → Uygula → Dogrula |
+| **Orta** | Anla → Tasarla (tek oneri) → Uygula → Dogrula |
+| **Karmasik** | Tam UDIV dongusu (2-3 yaklasim) |
+
 ## Farkli Makinede Guncelleme
 
 ```bash

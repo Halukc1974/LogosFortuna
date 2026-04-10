@@ -27,25 +27,32 @@ UDIV (Anla-Tasarla-Uygula-Dogrula) dongusu, her gorevi dort fazda cozer. Bu belg
 
 ### "Yeterli Anlama" Kriterleri
 
-Asagidakilerin HEPSINI cevaplayabilmelisin:
+**Kesfetme Limiti**: Maksimum **5 arac cagrisi** (Explore agent, Grep, Glob dahil). Bu limite ulasinca asagidaki kontrol listesini degerlendir.
+
+Asagidakilerin en az **4/5'ini** cevaplayabilmelisin (hepsini karsilamaya calisarak donguye girme):
 - [ ] Kullanicinin asil amaci ne? (soyledigi vs gercekte istedigi)
 - [ ] Hangi dosyalar/moduller etkilenecek?
 - [ ] Mevcut kodda bu islevi yapan veya benzer bir sey var mi?
 - [ ] Degisikligin yan etkileri ne olabilir?
 - [ ] Constitution prensiplerinden hangisi ilgili?
 
-Herhangi biri cevaplanamiyorsa → daha fazla kesfet veya kullaniciya sor.
+**Karar Agaci:**
+- 5 arac cagrisi kullanildi VE 4/5 kriter karsilandi → Anlama ozeti sun
+- 5 arac cagrisi kullanildi AMA < 4 kriter karsilandi → Cevaplanamayan kriterleri kullaniciya sor (daha fazla kesfetme yapma)
+- < 5 arac cagrisi VE 5/5 kriter karsilandi → Erken bitir, anlama ozeti sun
 
 ### Soru Sorma Karar Agaci
 
 ```
 Belirsizlik var mi?
 ├── Hayir → Anlama ozeti sun
-└── Evet → Belirsizlik tipi?
-    ├── Teknik (hangi yaklasim?) → Kesfetmeye devam et
-    ├── Niyet (ne istiyor?) → Kullaniciya sor
-    ├── Kapsam (ne kadar?) → Kullaniciya sor
-    └── Oncelik (hangisi once?) → Kullaniciya sor
+└── Evet → Kesfetme limiti doldu mu?
+    ├── Evet → Belirsizligi kullaniciya sor (kesfetmeye DEVAM ETME)
+    └── Hayir → Belirsizlik tipi?
+        ├── Teknik (hangi yaklasim?) → Kesfetmeye devam et (limit dahilinde)
+        ├── Niyet (ne istiyor?) → Kullaniciya sor
+        ├── Kapsam (ne kadar?) → Kullaniciya sor
+        └── Oncelik (hangisi once?) → Kullaniciya sor
 ```
 
 ### Anlama Ozeti Formati
@@ -130,16 +137,23 @@ Her artimdan sonra:
 3. **Test**: Ilgili testler geciyormu? (`pytest dosya.py`, `npm test`)
 4. **Lint**: Stil kurallari saglaniyor mu? (`ruff check`, `eslint`)
 
-### Geri Alma Protokolu
+### Geri Alma Protokolu (Max 3 Deneme/Artim)
+
+Her artim icin deneme_sayaci = 0 olarak basla.
 
 ```
-Artim basarisiz oldu
-├── Syntax hatasi → Hemen duzelt (basit typo)
+Artim basarisiz oldu → deneme_sayaci += 1
+├── deneme_sayaci > 3 → DURDUR
+│   └── Kullaniciya raporla: "Artim [X] 3 denemede basarilamadi.
+│       Neden: [hata ozeti]. Yaklasim degisikligi gerekebilir."
+│
+├── Syntax hatasi → Hemen duzelt (basit typo), tekrar dene
 ├── Test basarisizligi → Analiz et
-│   ├── Yeni testin kendisi yanlis → Testi duzelt
+│   ├── Yeni testin kendisi yanlis → Testi duzelt, tekrar dene
 │   ├── Mevcut test kirildi → Kodu geri al, tasarimi revize et
+│   │   └── Bu durum faz geri donusu sayilir (geri_donus_sayaci[3→2] += 1)
 │   └── Ilgisiz test basarisizligi → Not et, devam et
-└── Lint hatasi → Hemen duzelt
+└── Lint hatasi → Hemen duzelt, tekrar dene
 ```
 
 ### Ilerleme Takibi
@@ -167,7 +181,7 @@ Artim 5/5: ⏳ Frontend entegrasyonu
 **2. Anayasal Dogrulama**
 - constitution.md prensipleri saglanyor mu?
 - Her prensip icin spesifik kontrol yap
-- Ihlal varsa → KRITIK, Faz 3'e geri don
+- Ihlal varsa → KRITIK, Faz 3'e geri don (geri_donus_sayaci[4→3] kontrol et)
 
 **3. Niyetsel Dogrulama**
 - Kullanicinin Faz 1'de onayladigi niyet karsilaniyor mu?
@@ -214,21 +228,50 @@ Sadece guven >= 80 olan sorunlari raporla (false positive onleme).
 
 ---
 
-## Iterasyon Sayaci ve Yakinlasma
+## Dongu Koruma ve Sayaclar
 
-- Her faz gecisinde iterasyon sayacini artir
-- **Maksimum 3 iterasyon** ayni faz icinde → kullaniciya escalate et
-- Yakinlasma isareti: Her iterasyonda sorun sayisi azaliyor
-- Iraksamsa isareti: Sorun sayisi artiyorsa → dur, kullaniciya danist
+### Sayac Tanimlari
+
+Dongu basinda tum sayaclar sifirlanir:
+```
+geri_donus_sayaci[4→3] = 0  # Dogrulama → Uygulama geri donusleri
+geri_donus_sayaci[3→2] = 0  # Uygulama → Tasarla geri donusleri
+geri_donus_sayaci[2→1] = 0  # Tasarla → Anla geri donusleri
+faz1_kesfetme_adimi = 0     # Faz 1'deki arac cagrisi sayisi
+artim_deneme[N] = 0         # Her artim icin deneme sayisi
+```
+
+### Limitler ve Eskalasyon
+
+| Sayac | Limit | Eskalasyon |
+|-------|-------|------------|
+| geri_donus_sayaci[X→Y] | **2** | "Bu faz ciftinde 2 geri donus yapildi. Yaklasim degisikligi gerekiyor." |
+| faz1_kesfetme_adimi | **5** | Mevcut bilgiyle devam et veya kullaniciya sor |
+| artim_deneme[N] | **3** | "Bu artim basarilamadi. Alternatif yaklasim gerekiyor." |
+| dogrulama_uygulama_turu | **2** | Kalan sorunlari kullaniciya sun |
+
+### Yakinlasma ve Iraksama Tespiti
+
+- **Yakinlasma isareti**: Her iterasyonda sorun sayisi azaliyor → devam et
+- **Iraksama isareti**: Sorun sayisi artiyorsa veya yeni sorunlar cikiyorsa → hemen dur, kullaniciya danist
+- Bir duzeltme 2+ yeni sorun yaratiyorsa → bu yaklasim uygun degil, geri donus sayacini artir
 
 ---
 
 ## Ozel Durumlar
 
-### Kucuk Gorevler (tek dosya, < 20 satir)
-- Faz 1 ve 2'yi kisalt (ozet + oneri tek adimda)
-- Faz 3 tek artim
-- Faz 4 hafif dogrulama
+### Kucuk/Basit Gorevler (tek dosya, < 20 satir)
+- Faz 1: Hafif kesfetme (max 2 arac cagrisi)
+- Faz 2: **ATLA** — dogrudan uygulamaya gec
+- Faz 3: Tek artim
+- Faz 4: Hafif dogrulama (syntax + test yeterli)
+- Dongu koruma limitleri yine gecerli
+
+### Orta Gorevler (2-5 dosya, net kapsam)
+- Faz 1: Normal kesfetme (max 5 arac cagrisi)
+- Faz 2: Tek oneri yeterli (2. yaklasim opsiyonel)
+- Faz 3: Normal artimsal uygulama
+- Faz 4: Normal 5 boyutlu dogrulama
 
 ### Acil Duzeltmeler (bug fix)
 - Faz 1: Hatanin kok nedenini bul
@@ -236,8 +279,9 @@ Sadece guven >= 80 olan sorunlari raporla (false positive onleme).
 - Faz 3: Duzeltmeyi uygula
 - Faz 4: Regresyon testi oncelikli
 
-### Buyuk Ozellikler (5+ dosya, yeni modul)
+### Buyuk/Karmasik Ozellikler (5+ dosya, yeni modul)
 - Faz 1: Kapsamli kesfet (very thorough Explore)
-- Faz 2: Mutlaka 3 yaklasim sun
+- Faz 2: Mutlaka 2-3 yaklasim sun
 - Faz 3: Alt gorevlere bol, her biri kendi UDIV mini-dongusu
 - Faz 4: Kapsamli 5 boyutlu dogrulama
+- Dongu koruma limitleri her mini-dongu icin ayri uygulanir

@@ -24,7 +24,7 @@ description: >
   </commentary>
   </example>
 
-model: sonnet
+model: inherit
 color: magenta
 tools: ["Read", "Grep", "Glob"]
 ---

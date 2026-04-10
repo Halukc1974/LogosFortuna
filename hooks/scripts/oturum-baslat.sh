@@ -7,7 +7,7 @@ set -euo pipefail
 OUTPUT=""
 
 # 1. Son git commit'leri
-if git rev-parse --is-inside-work-tree &>/dev/null; then
+if command -v git &>/dev/null && git rev-parse --is-inside-work-tree &>/dev/null; then
   RECENT_COMMITS=$(git log --oneline -5 2>/dev/null || echo "Git log alinamadi")
   BRANCH=$(git branch --show-current 2>/dev/null || echo "bilinmiyor")
   UNCOMMITTED=$(git diff --stat 2>/dev/null | tail -1)
@@ -18,12 +18,20 @@ if git rev-parse --is-inside-work-tree &>/dev/null; then
     OUTPUT+="Kaydedilmemis: ${UNCOMMITTED}\n"
   fi
   OUTPUT+="Son commitler:\n${RECENT_COMMITS}\n"
+else
+  OUTPUT="🔧 LogosFortuna-Skill Baglam Ozeti\n"
+  OUTPUT+="━━━━━━━━━━━━━━━━━━━━━━━━\n"
+  OUTPUT+="Git: mevcut degil veya git reposu disinda\n"
 fi
 
 # 2. Constitution durumu
 CONSTITUTION_FILE=".specify/memory/constitution.md"
 if [ -f "$CONSTITUTION_FILE" ]; then
-  VERSION=$(grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' "$CONSTITUTION_FILE" 2>/dev/null | tail -1 || echo "")
+  if command -v grep &>/dev/null; then
+    VERSION=$(grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' "$CONSTITUTION_FILE" 2>/dev/null | tail -1 || echo "")
+  else
+    VERSION=""
+  fi
   if [ -n "$VERSION" ]; then
     OUTPUT+="Constitution: ${VERSION}\n"
   else

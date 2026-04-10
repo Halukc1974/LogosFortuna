@@ -84,17 +84,32 @@ Bu belge, LogosFortuna-Skill'in Faz 4 (DOGRULA) asamasinda ve PostToolUse hook'l
 
 ---
 
-## Boyut Bazli Skor Esikleri
+## Boyut Bazli Skor Esikleri ve Karar Matrisi
 
-| Boyut | Minimum Skor | Kritik Esik |
-|-------|-------------|-------------|
-| Fonksiyonel | 80 | < 50 → DURDUR |
-| Anayasal | 90 | < 70 → DURDUR |
-| Niyetsel | 85 | < 60 → DURDUR |
-| Yapisal | 75 | < 50 → DURDUR |
-| Regresyon | 95 | < 80 → DURDUR |
+| Boyut | GECTI (✅) | KOSULLU (⚠️) | KALDI (❌) | KRITIK DURDUR (🛑) |
+|-------|-----------|-------------|-----------|-------------------|
+| Fonksiyonel | >= 80 | 65-79 | 50-64 | < 50 |
+| Anayasal | >= 90 | 80-89 | 70-79 | < 70 |
+| Niyetsel | >= 85 | 70-84 | 60-69 | < 60 |
+| Yapisal | >= 75 | 60-74 | 50-59 | < 50 |
+| Regresyon | >= 95 | 85-94 | 80-84 | < 80 |
 
-**DURDUR** = Faz 3'e geri don, sorunlu alani duzelt.
+### Karar Kurallari
+
+- **GECTI (✅)**: Devam et, sorun yok
+- **KOSULLU (⚠️)**: Kullaniciya bildir, devam etme karari kullanicida
+  - Format: "Su boyutlar kosullu gecti: [boyut: skor]. Bilinen eksikler: [...]. Devam edilsin mi?"
+  - Kullanici "devam" derse → kabul et ve ilerle
+  - Kullanici "duzelt" derse → Faz 3'e geri don (geri donus sayaci dahilinde)
+- **KALDI (❌)**: Otomatik olarak Faz 3'e geri don (geri donus sayaci kontrolu ile)
+- **KRITIK DURDUR (🛑)**: Hemen dur, kullaniciya eskalasyon. Geri donus sayaci ne olursa olsun durdur.
+
+### Birlesik Karar
+
+- Herhangi bir boyut KRITIK DURDUR → tum dogrulama basarisiz
+- 2+ boyut KALDI → tum dogrulama basarisiz
+- 1 boyut KALDI + diger hepsi GECTI → o boyutu duzelt (kismi geri donus)
+- Sadece KOSULLU'lar var → kullaniciya sun, karar kullanicida
 
 ---
 

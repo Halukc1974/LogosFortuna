@@ -6,6 +6,28 @@ Bu belge, LogosFortuna-Skill'in hangi durumda hangi araci kullanacagini tanimlar
 
 ---
 
+## Ortam Uyumluluk ve Fallback Tablosu
+
+MCP araclari her ortamda mevcut olmayabilir. Bir araci cagirmadan once mevcut olup olmadigini kontrol et.
+Mevcut degilse asagidaki fallback'i kullan:
+
+| Birincil Arac | Fallback | Ikincil Fallback |
+|---------------|----------|------------------|
+| `mcp__memory__*` (tum memory araclari) | Dosya tabanli memory: proje kokunde `.memory/` dizini veya CLAUDE.md'ye not ekle | Oturum icinde hatirla, oturum sonunda kullaniciya bildirt |
+| `mcp__sequential-thinking__sequentialthinking` | Extended thinking / yapilandirilmis akil yurutme (dogal dusunme) | Adim adim analizi dogrudan metin olarak yaz |
+| `mcp__brave-search__brave_web_search` | `WebSearch` tool | `curl` ile dogrudan arama veya kullaniciya "Bu bilgiyi bilmiyorum, lütfen paylas" |
+| `mcp__fetch__fetch` | `WebFetch` tool | `curl -s [URL]` |
+| `mcp__github__*` | `gh` CLI komutu (Bash uzerinden) | Kullaniciya GitHub UI'dan yapmasini oner |
+| `Explore` agent | Paralel `Grep` + `Glob` + `Read` kombinasyonu | Tek tek dosya okuma |
+
+**Onemli**: Bir arac "tool not found" veya "permission denied" hatasi verirse:
+1. Hata mesajini not et
+2. Fallback aracina gec
+3. Kullaniciya bildir: "X araci mevcut degil, Y ile devam ediyorum"
+4. Ayni araci tekrar deneme — fallback'te kal
+
+---
+
 ## MCP Tool Secim Matrisi
 
 ### Bilgi Kaliciligi → Memory MCP
@@ -150,10 +172,14 @@ Gorev karmasikligi?
 
 ```
 Arac basarisiz oldu
-├── MCP timeout → Dahili alternatife gec
-│   (memory MCP → dosya bazli memory)
-│   (fetch MCP → WebFetch)
+├── MCP timeout / tool not found → Fallback tablosundaki alternatife gec
+│   (Ayni MCP aracini tekrar deneme, fallback'te kal)
 ├── Tool izin reddedildi → Kullaniciya neden gerektigini acikla
+│   + Alternatif yaklasim oner
 ├── Bos sonuc → Arama terimlerini genislet veya farkli arac dene
+│   (Max 2 genisletme denemesi, sonra kullaniciya sor)
 └── Hata mesaji → Hataya ozel cozum uygula
+    (Ayni hatayi 2+ kez aliyorsan tamamen farkli araca gec)
 ```
+
+**Dongu Koruma**: Bir arac art arda 2 kez basarisiz olursa, o araci bu oturumda bir daha deneme. Fallback'e gecis yap veya kullaniciya danist.

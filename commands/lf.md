@@ -65,3 +65,5 @@ Her geri donuste neden geri donuldugunu acikla.
 - Kucuk artimlarla calis
 - Constitution prensiplerini her zaman referans al
 - Oturum sonunda her zaman ogrenimleri kaydet
+- **Dongu Koruma**: Faz geri donus max 2, artim deneme max 3, dogrulama turu max 2
+- **Iptal**: Kullanici "dur/iptal/vazgec" derse hemen durdur ve Iptal Protokolunu uygula

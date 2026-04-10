@@ -7,6 +7,11 @@ set -euo pipefail
 # stdin'den tool input'u oku
 INPUT=$(cat)
 
+# python3 mevcut degilse sessizce cik (dogrulama yapilamaz ama engelleme)
+if ! command -v python3 &>/dev/null; then
+  exit 0
+fi
+
 # Dosya yolunu cikar (Edit ve Write tool'lari icin)
 FILE_PATH=$(echo "$INPUT" | python3 -c "
 import sys, json
@@ -33,17 +38,21 @@ EXT="${FILE_PATH##*.}"
 # Uzantiya gore hafif kontrol
 case "$EXT" in
   py)
-    if ! python3 -m py_compile "$FILE_PATH" 2>/tmp/lf_syntax_err; then
-      ERR=$(cat /tmp/lf_syntax_err)
-      echo "{\"decision\": \"block\", \"reason\": \"Python syntax hatasi: ${ERR}\"}"
-      exit 2
+    if command -v python3 &>/dev/null; then
+      if ! python3 -m py_compile "$FILE_PATH" 2>/tmp/lf_syntax_err; then
+        ERR=$(cat /tmp/lf_syntax_err)
+        echo "{\"decision\": \"block\", \"reason\": \"Python syntax hatasi: ${ERR}\"}"
+        exit 2
+      fi
     fi
     ;;
   json)
-    if ! python3 -m json.tool "$FILE_PATH" > /dev/null 2>/tmp/lf_syntax_err; then
-      ERR=$(cat /tmp/lf_syntax_err)
-      echo "{\"decision\": \"block\", \"reason\": \"Gecersiz JSON: ${ERR}\"}"
-      exit 2
+    if command -v python3 &>/dev/null; then
+      if ! python3 -m json.tool "$FILE_PATH" > /dev/null 2>/tmp/lf_syntax_err; then
+        ERR=$(cat /tmp/lf_syntax_err)
+        echo "{\"decision\": \"block\", \"reason\": \"Gecersiz JSON: ${ERR}\"}"
+        exit 2
+      fi
     fi
     ;;
   ts|tsx)
