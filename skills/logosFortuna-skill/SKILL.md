@@ -19,11 +19,40 @@ LogosFortuna-Skill, her gorevi dort fazli bir donguyle cozer: **Anla → Tasarla
 5. **Ogrenme** — Her oturum sonunda ogrenimleri memory'ye kaydet
 6. **Constitution** — Proje anayasasina (.specify/memory/constitution.md) her zaman uy
 
+## Gorev Siniflandirma (UDIV Oncesi)
+
+UDIV dongusune baslamadan once gorevin karmasikligini degerlendir:
+
+| Seviye | Kriter | UDIV Akisi |
+|--------|--------|------------|
+| **Basit** | Tek dosya, acik istek, bilinen kalip | Anla (hafif) → Uygula → Dogrula |
+| **Orta** | 2-5 dosya, net kapsam, tek yaklasim yeterli | Anla → Tasarla (tek oneri) → Uygula → Dogrula |
+| **Karmasik** | 5+ dosya, belirsiz kapsam, mimari etki | Tam UDIV dongusu (2-3 yaklasim) |
+
+**Basit gorevlerde** Faz 2 (Tasarla) atlanabilir — dogrudan anlama ozetinden sonra uygulamaya gecilir.
+**Karmasik gorevlerde** tum fazlar zorunludur.
+
+## Dongu Koruma Limitleri
+
+Kisir donguyu onlemek icin asagidaki limitler **kesinlikle** uygulanir:
+
+| Limit | Deger | Asim Durumunda |
+|-------|-------|----------------|
+| Faz geri donusu (ayni faz cifti) | Max **2** | Kullaniciya eskale et: "Yaklasim degisikligi gerekiyor" |
+| Artim deneme sayisi (ayni artim) | Max **3** | DURDUR, kullaniciya raporla |
+| Dogrulama-Uygulama turu | Max **2** | Kalan sorunlari kullaniciya sun, karar kullanicida |
+| Faz 1 kesfetme adimi | Max **5** arac cagrisi | "Yeterli Anlama Kriterleri"nin %80'i yeterli, ilerle |
+| Toplam UDIV dongu tekrari | Max **1** tam tekrar | Ikinci tam dngude hala basarisizsa tamamen dur |
+
+**Sayac Takibi**: Her faz basinda geri_donus_sayaci=0 olarak basla. Her geri donuste +1 artir. Limite ulasinca kullaniciya acikla ve karar iste.
+
 ## UDIV Dongusu
 
 ### Faz 1: ANLA
 
 Amac: Kullanicinin gercekte ne istedigini ve mevcut sistemin nasil calistigini derinlemesine kavra.
+
+**Kesfetme Limiti**: Maksimum 5 arac cagrisi (Explore agent dahil). Asagidaki "Yeterli Anlama Kriterleri"nin en az 4/5'i karsilaninca dur, hepsini karsilamaya calisarak donguye girme.
 
 **Adimlar:**
 
@@ -85,12 +114,13 @@ Amac: Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir.
    - Onaylanmis tasarimi en kucuk bagimsiz artrimlara bol
    - Her artimin dogrulama kriterini belirle
 
-2. **Artimsal Uygulama Dongusu** (her artim icin):
+2. **Artimsal Uygulama Dongusu** (her artim icin, **max 3 deneme**):
    - `uygulama-ajansi` agent'ini calistir
    - Kod degisikligi yap
    - Hemen dogrula (syntax, test, lint)
    - Basarili → sonraki artrima gec
-   - Basarisiz → analiz et, duzelt veya geri al
+   - Basarisiz (deneme < 3) → analiz et, duzelt veya geri al, tekrar dene
+   - Basarisiz (deneme = 3) → **DURDUR**, kullaniciya raporla: "Bu artim 3 denemede basarilamadi: [neden]. Alternatif yaklasim gerekiyor."
 
 3. **Ilerleme Raporu**
    - Tamamlanan ve kalan artimlari goster
@@ -109,9 +139,10 @@ Amac: Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
    - 5 boyut: fonksiyonel, anayasal, niyetsel, yapisal, regresyon
    - Her boyut icin gecti/kaldi ve guven skoru (0-100)
 
-2. **Sorun Cozumu** (varsa)
-   - Kritik sorunlar → Faz 3'e geri don
+2. **Sorun Cozumu** (varsa, **max 2 dogrulama-uygulama turu**)
+   - Kritik sorunlar → Faz 3'e geri don (geri_donus_sayaci kontrol et)
    - Kucuk sorunlar → yerinde duzelt
+   - 2. turda hala sorun varsa → kullaniciya sun: "Su sorunlar kaldi: [...]. Devam mi, farkli yaklasim mi?"
 
 3. **Ogrenme**
    - `ogrenme-ajansi` agent'ini calistir
@@ -146,10 +177,44 @@ Detayli kriterler icin: `references/kalite-kapilari.md`
 ## Faz Basarisizlik Protokolu
 
 ```
-Faz 4 basarisiz → Faz 3'e don (sorunlu artimlari duzelt)
-Faz 3 basarisiz → Faz 2'ye don (yaklasimi revize et)
-Faz 2 basarisiz → Faz 1'e don (anlamayi derinlestir)
+Faz 4 basarisiz → geri_donus_sayaci[4→3] += 1
+  ├── sayac <= 2 → Faz 3'e don (sorunlu artimlari duzelt)
+  └── sayac > 2  → DURDUR: "Bu yaklasim 2 dogrulama turunda basarilamadi. 
+                    Farkli yaklasim onerilmeli." → Kullaniciya eskale et
+
+Faz 3 basarisiz → geri_donus_sayaci[3→2] += 1
+  ├── sayac <= 2 → Faz 2'ye don (yaklasimi revize et)
+  └── sayac > 2  → DURDUR: "Secilen yaklasim uygulanamadi.
+                    Tamamen farkli bir yaklasim gerekiyor." → Kullaniciya eskale et
+
+Faz 2 basarisiz → geri_donus_sayaci[2→1] += 1
+  ├── sayac <= 2 → Faz 1'e don (anlamayi derinlestir)
+  └── sayac > 2  → DURDUR: "Yeterli anlama olusturulamadi.
+                    Kullanicidan daha fazla baglam gerekiyor." → Kullaniciya eskale et
+
 Faz 1 basarisiz → Kullaniciya daha fazla bilgi sor
 ```
 
-Her geri donuste neden geri donuldugunu acikla ve onceki fazin ciktisini guncelle.
+Her geri donuste:
+1. Neden geri donuldugunu acikla
+2. Onceki fazin ciktisini guncelle
+3. Geri donus sayacini raporla: "Bu faz ciftinde X/2 geri donus kullanildi"
+
+## Iptal Protokolu
+
+Kullanici "iptal", "dur", "vazgec", "birak" gibi ifadeler kullandiginda:
+
+1. **Mevcut calismay hemen durdur** — yarim kalmis islem varsa tamamla veya geri al
+2. **Durum raporu sun**:
+   ```
+   ## Iptal Raporu
+   - Tamamlanan fazlar: [liste]
+   - Aktif faz: [faz adi] — [ilerleme %]
+   - Yapilan degisiklikler: [dosya listesi]
+   - Geri alinmasi gereken degisiklik: [varsa]
+   ```
+3. **Secenekler sun**:
+   - "Yapilanlari koru, sadece dur"
+   - "Tum degisiklikleri geri al (`git checkout .`)"
+   - "Farkli bir noktadan devam et"
+4. Kullanicinin secimini uygula
