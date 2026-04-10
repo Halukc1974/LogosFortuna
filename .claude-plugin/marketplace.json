@@ -1,0 +1,25 @@
+{
+  "name": "logosFortuna",
+  "id": "logosFortuna",
+  "owner": {
+    "name": "Haluk Celebi"
+  },
+  "metadata": {
+    "description": "LogosFortuna-Skill - Kisisel iteratif anlama ve uygulama meta-orkestrasyon sistemi",
+    "version": "1.0.1"
+  },
+  "plugins": [
+    {
+      "name": "logosFortuna-skill",
+      "source": "./",
+      "description": "LogosFortuna-Skill - UDIV dongusu ile derin anlama, tasarim, artimsal uygulama ve dogrulama meta-orkestrasyon sistemi.",
+      "version": "1.0.1",
+      "author": {
+        "name": "Haluk Celebi"
+      },
+      "keywords": ["meta-skill", "orkestrasyon", "iteratif", "kisisel", "udiv"],
+      "category": "workflow",
+      "strict": false
+    }
+  ]
+}
