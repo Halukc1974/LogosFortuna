@@ -82,7 +82,7 @@ class KullaniciProfili:
                     # Default değerlerle birleştir
                     self._merge_profiles(default_profile, loaded_profile)
                     return default_profile
-            except:
+            except (json.JSONDecodeError, OSError, ValueError):
                 pass
 
         return default_profile

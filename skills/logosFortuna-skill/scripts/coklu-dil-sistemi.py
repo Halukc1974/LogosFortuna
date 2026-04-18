@@ -37,7 +37,7 @@ class CokluDilSistemi:
                 lang_code = system_locale.split('_')[0].lower()
                 if lang_code in ['tr', 'en', 'de', 'fr']:
                     return lang_code
-        except:
+        except (ValueError, AttributeError):
             pass
 
         # Varsayılan olarak Türkçe
@@ -140,7 +140,7 @@ class CokluDilSistemi:
                     with open(translation_file, 'r', encoding='utf-8') as f:
                         file_translations = json.load(f)
                         translations[lang].update(file_translations)
-                except:
+                except (json.JSONDecodeError, OSError):
                     pass
             else:
                 # Varsayılan çevirileri dosyaya kaydet
@@ -256,7 +256,7 @@ class CokluDilSistemi:
                     json.dump(self.translations[lang], f, indent=2, ensure_ascii=False)
 
             return True
-        except:
+        except (OSError, TypeError):
             return False
 
     def format_date(self, date: datetime, lang: str = None) -> str:
@@ -300,7 +300,7 @@ class CokluDilSistemi:
         if kwargs:
             try:
                 message = message.format(**kwargs)
-            except:
+            except (KeyError, IndexError, ValueError):
                 pass  # Format hatası olursa orijinal mesajı döndür
 
         return message

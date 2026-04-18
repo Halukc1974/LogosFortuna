@@ -1,0 +1,276 @@
+Metadata-Version: 2.4
+Name: logosfortuna
+Version: 1.0.0
+Summary: LogosFortuna skill automation helpers
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: requests>=2.31.0
+Provides-Extra: test
+Requires-Dist: pytest>=7.0; extra == "test"
+Requires-Dist: pytest-cov>=4.0; extra == "test"
+
+# LogosFortuna-Skill - UDIV Meta-Orkestrasyon Sistemi
+
+Kisisel iteratif anlama ve uygulama plugin'i. Her gorevi dort fazli UDIV dongusuyle cozer:
+
+**Anla → Tasarla → Uygula → Dogrula**
+
+## Kurulum
+
+```bash
+git clone https://github.com/Halukc1974/LogosFortuna.git ~/.claude/plugins/local/logosFortuna-skill
+```
+
+Claude Code'u yeniden baslat. Plugin otomatik olarak taninacak.
+
+## Komutlar
+
+| Komut | Aciklama |
+|-------|----------|
+| `/lf [gorev]` | Tam UDIV dongusu baslat |
+| `/lf-anla [alan]` | Sadece derin anlama fazi |
+| `/lf-dogrula [alan]` | 5 boyutlu dogrulama |
+
+## Bilesenleri
+
+- **4 Uzman Agent**: anlama, uygulama, ogrenme, dogrulama
+- **3 Slash Komutu**: /lf, /lf-anla, /lf-dogrula
+- **3 Hook**: SessionStart (baglam), PostToolUse (syntax), Stop (ogrenme)
+- **3 Referans**: UDIV protokol, arac orkestrasyon, kalite kapilari
+- **Memory Entegrasyonu**: Oturum arasi ogrenme
+
+## Dongu Koruma
+
+Kisir dongu ve sonsuz tekrarlari onlemek icin yerlesik limitler:
+
+| Mekanizma | Limit | Davranis |
+|-----------|-------|----------|
+| Faz geri donusu | Max 2 / faz cifti | Kullaniciya eskalasyon |
+| Artim denemesi | Max 3 / artim | Durdur ve raporla |
+| Dogrulama-Uygulama turu | Max 2 tur | Kalan sorunlari kullaniciya sun |
+| Faz 1 kesfetme | Max 5 arac cagrisi | Mevcut bilgiyle ilerle |
+
+## Gorev Siniflandirma
+
+UDIV dongusu gorev karmasikligina gore adapte olur:
+
+| Seviye | Akis |
+|--------|------|
+| **Basit** | Anla (hafif) → Uygula → Dogrula |
+| **Orta** | Anla → Tasarla (tek oneri) → Uygula → Dogrula |
+| **Karmasik** | Tam UDIV dongusu (2-3 yaklasim) |
+
+## Farkli Makinede Guncelleme
+
+```bash
+cd ~/.claude/plugins/local/logosFortuna-skill && git pull
+```
+
+## Dünya Sınıfı Özellikler
+
+LogosFortuna artık dünya standartlarında bir skill haline geldi:
+
+### 🔒 Güvenlik Tarama
+- **OWASP Top 10** ve **SANS Top 25** kontrolü
+- Regex tabanlı güvenlik açığı tespiti
+- Risk değerlendirmesi ve exploit analizi
+
+### 📊 Kalite Analizi
+- **0-100 arası çok boyutlu kalite skoru**
+- Teknik karmaşıklık, bakım kolaylığı, test kapsamı
+- Otomatik iyileştirme önerileri
+
+### 🌍 Çoklu Dil Desteği
+- **Türkçe, İngilizce, Almanca, Fransızca**
+- Otomatik dil algılama ve çeviri
+- Kültür-spesifik kodlama standartları
+
+### 🎯 Kişiselleştirilmiş UX
+- **Adaptive UI** ve gamification sistemi
+- Sesli komut desteği ve erişilebilirlik
+- Kullanıcı davranış öğrenme
+
+### 🔗 Kapsamlı Entegrasyonlar
+
+#### GitHub Entegrasyonu
+```bash
+# PR otomasyonu
+python scripts/entegrasyon-sistemi.py --configure-github --token YOUR_TOKEN --repos repo1,repo2
+```
+
+#### Slack/Discord Bildirimleri
+```bash
+# Slack webhook yapılandırma
+python scripts/entegrasyon-sistemi.py --configure-slack --webhook https://hooks.slack.com/... --channel #logosfortuna
+```
+
+#### CI/CD Pipeline Bağlantısı
+- Jenkins ve GitLab CI entegrasyonu
+- Otomatik kalite kapıları
+- Deployment takibi ve rollback
+
+#### Özel Webhook Desteği
+```python
+from scripts.entegrasyon_sistemi import add_custom_webhook
+
+# Özel sistem entegrasyonu
+add_custom_webhook(
+    url="https://your-system.com/webhook",
+    events=["analysis_complete", "error_detected"],
+    name="custom-integration"
+)
+```
+
+### ⚡ Performans ve Ölçeklenebilirlik
+
+#### Akıllı Caching ve Memory Yönetimi
+- **Çok katmanlı cache sistemi** (memory, disk, distributed)
+- Akıllı Bağlam Budama (Context Pruning & Summarization)
+- Büyük projelerde lazy loading
+
+#### Paralel İşleme
+- **Çok çekirdekli CPU optimizasyonu**
+- Canlı Maliyet/Performans Profiler (Big-O analizator)
+- Load balancing ve chunk processing
+
+### 🛡️ Hata Yönetimi ve Güvenilirlik
+
+#### Otomatik Kurtarma (Self-Healing)
+- **Git Rollback Mekanizması**: İşlem öncesi `stash` veya `temp branch` oluşturma
+- State recovery ve geri alma (auto-rollback) yetenekleri
+- Gerçek zamanlı monitoring
+
+#### Gelişmiş Test Sistemleri
+- Proaktif Tehdit Avcılığı ve Chaos Engineering
+- Mutation Testing algoritmaları
+- Detaylı hata logları ve analytics
+
+## Yapılandırma
+
+### Temel Kurulum
+```bash
+# Entegrasyonları yapılandır
+python scripts/entegrasyon-sistemi.py --setup
+
+# Güvenlik tarayıcıyı çalıştır
+python scripts/guvenlik-tarayici.py --target /path/to/project --report-format json
+
+# Kalite analizörü
+python scripts/kod-kalitesi-analizoru.py --project /path/to/project --output-format json
+
+# Çoklu dil sistemi
+python scripts/coklu-dil-sistemi.py --detect-language --translate-to tr
+```
+
+### Gelişmiş Yapılandırma
+```json
+{
+  "integrations": {
+    "github": {
+      "enabled": true,
+      "token": "your_github_token",
+      "repositories": ["repo1", "repo2"]
+    },
+    "slack": {
+      "enabled": true,
+      "webhook_url": "https://hooks.slack.com/...",
+      "channel": "#dev-notifications"
+    },
+    "quality_gates": {
+      "min_score": 80,
+      "block_on_failure": true
+    }
+  }
+}
+```
+
+## Kullanım Örnekleri
+
+### Tam UDIV Dongusu
+```bash
+/lf Yeni kullanıcı API'si ekle
+```
+→ Derin anlama → Tasarım önerileri → Artımlı uygulama → 5 boyutlu doğrulama
+
+### Sadece Güvenlik Tarama
+```bash
+python scripts/guvenlik-tarayici.py --target /src --report-format json
+```
+
+### Kalite Analizi
+```bash
+python scripts/kod-kalitesi-analizoru.py --project . --output-format text --output quality-report.md
+```
+
+### Entegrasyon Testi
+```bash
+python scripts/entegrasyon-sistemi.py --test-notifications
+```
+
+### Modül Üzerinden Çalıştırma
+```bash
+python -m logosfortuna integrations -- --status
+python -m logosfortuna security -- --target . --report-format json
+python -m logosfortuna quality -- --project . --output-format json
+```
+
+## API Referansı
+
+### Entegrasyon API
+```python
+from scripts.entegrasyon_sistemi import get_integration_manager
+
+manager = get_integration_manager()
+
+# Bildirim gönder
+manager.send_notification("analysis_complete", {"score": 85})
+
+# GitHub yapılandır
+manager.configure_github("token", ["repo1", "repo2"])
+
+# Slack yapılandır
+manager.configure_slack("webhook_url", "#channel")
+```
+
+### Güvenlik API
+```python
+from scripts.guvenlik_tarayici import SecurityScanner
+
+scanner = SecurityScanner("/path/to/project")
+results = scanner.tara_dosyalar()
+print(scanner.rapor_olustur(results))
+```
+
+### Kalite API
+```python
+from scripts.kod_kalitesi_analizoru import QualityAnalyzer
+
+analyzer = QualityAnalyzer("/path/to/project")
+result = analyzer.analiz_et()
+print(f"Kalite Skoru: {result['toplam_skor']}/100")
+```
+
+## Desteklenen Ortamlar
+
+- ✅ **VS Code** (Copilot Chat)
+- ✅ **Claude Code** (CLI)
+- ✅ **GitHub Copilot**
+- ✅ **Cursor** ve diğer AI destekli editörler
+
+## Lisans
+
+MIT License - Ticari ve kişisel kullanım için ücretsiz.
+
+## Katkıda Bulunma
+
+1. Fork edin
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit edin (`git commit -m 'Add amazing feature'`)
+4. Push edin (`git push origin feature/amazing-feature`)
+5. Pull Request açın
+
+## İletişim
+
+- **GitHub Issues**: Hata raporları ve özellik istekleri
+- **Discussions**: Genel tartışmalar ve yardım
+- **Wiki**: Detaylı dokümantasyon ve kılavuzlar

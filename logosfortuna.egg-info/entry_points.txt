@@ -1,0 +1,2 @@
+[console_scripts]
+logosfortuna = logosfortuna.__main__:main

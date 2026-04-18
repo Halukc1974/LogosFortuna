@@ -15,5 +15,17 @@ dependencies = [
 [project.scripts]
 logosfortuna = "logosfortuna.__main__:main"
 
+[project.optional-dependencies]
+test = [
+  "pytest>=7.0",
+  "pytest-cov>=4.0",
+]
+
 [tool.setuptools]
 packages = ["logosfortuna", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

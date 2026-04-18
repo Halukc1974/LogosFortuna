@@ -93,7 +93,7 @@ class EntegrasyonYoneticisi:
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     loaded_config = json.load(f)
                     self._merge_configs(default_config, loaded_config)
-            except:
+            except (json.JSONDecodeError, OSError, ValueError):
                 pass
 
         return default_config
@@ -124,7 +124,8 @@ class EntegrasyonYoneticisi:
             })
             self.save_config()
             return True
-        except:
+        except (OSError, KeyError, TypeError) as e:
+            print(f"GitHub configuration error: {e}", file=sys.stderr)
             return False
 
     def configure_slack(self, webhook_url: str, channel: str = "#logosfortuna") -> bool:
@@ -137,7 +138,8 @@ class EntegrasyonYoneticisi:
             })
             self.save_config()
             return True
-        except:
+        except (OSError, KeyError, TypeError) as e:
+            print(f"Slack configuration error: {e}", file=sys.stderr)
             return False
 
     def configure_discord(self, webhook_url: str) -> bool:
@@ -149,7 +151,8 @@ class EntegrasyonYoneticisi:
             })
             self.save_config()
             return True
-        except:
+        except (OSError, KeyError, TypeError) as e:
+            print(f"Discord configuration error: {e}", file=sys.stderr)
             return False
 
     def add_custom_webhook(self, url: str, events: List[str], name: str = None) -> bool:
@@ -166,7 +169,8 @@ class EntegrasyonYoneticisi:
             self.config["webhooks"]["custom_webhooks"].append(webhook)
             self.save_config()
             return True
-        except:
+        except (OSError, KeyError, TypeError) as e:
+            print(f"Webhook configuration error: {e}", file=sys.stderr)
             return False
 
     def send_notification(self, event_type: str, data: Dict[str, Any], priority: str = "normal"):
