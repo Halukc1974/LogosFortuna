@@ -4,6 +4,7 @@ LogosFortuna Güvenlik Tarayıcı
 OWASP Top 10 ve SANS Top 25'e göre kod güvenliği taraması yapar.
 """
 
+import argparse
 import re
 import os
 import sys
@@ -194,22 +195,48 @@ class GuvenlikTarayici:
 
         return "\n".join(rapor)
 
-def main():
-    if len(sys.argv) != 2:
-        print("Kullanım: python guvenlik-tarayici.py <proje_dizini>", file=sys.stderr)
-        sys.exit(1)
+def _build_argument_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="LogosFortuna guvenlik tarayicisi"
+    )
+    parser.add_argument("project_dir", nargs="?", help="Taranacak proje dizini")
+    parser.add_argument("--target", dest="project_dir_flag", help="Taranacak proje dizini")
+    parser.add_argument(
+        "--report-format",
+        choices=["text", "json"],
+        default="text",
+        help="Rapor cikti formati",
+    )
+    parser.add_argument("--output", help="Raporu dosyaya yaz")
+    return parser
 
-    proje_dizini = sys.argv[1]
+
+def main(argv=None):
+    parser = _build_argument_parser()
+    args = parser.parse_args(argv)
+
+    proje_dizini = args.project_dir_flag or args.project_dir
+    if not proje_dizini:
+        parser.error("Bir proje dizini gerekli. Konumsal arguman veya --target kullanin.")
 
     if not os.path.isdir(proje_dizini):
         print(f"Hata: {proje_dizini} dizini bulunamadı", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
     tarayici = GuvenlikTarayici(proje_dizini)
     bulgular = tarayici.tara_dosyalar()
-    rapor = tarayici.rapor_olustur(bulgular)
+    if args.report_format == "json":
+        cikti = json.dumps(bulgular, indent=2, ensure_ascii=False)
+    else:
+        cikti = tarayici.rapor_olustur(bulgular)
 
-    print(rapor)
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as output_file:
+            output_file.write(cikti)
+    else:
+        print(cikti)
+
+    return 0
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

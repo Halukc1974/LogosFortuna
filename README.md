@@ -142,10 +142,10 @@ add_custom_webhook(
 python scripts/entegrasyon-sistemi.py --setup
 
 # Güvenlik tarayıcıyı çalıştır
-python scripts/guvenlik-tarayici.py --scan-project /path/to/project
+python scripts/guvenlik-tarayici.py --target /path/to/project --report-format json
 
 # Kalite analizörü
-python scripts/kod-kalitesi-analizoru.py --analyze /path/to/project
+python scripts/kod-kalitesi-analizoru.py --project /path/to/project --output-format json
 
 # Çoklu dil sistemi
 python scripts/coklu-dil-sistemi.py --detect-language --translate-to tr
@@ -188,12 +188,19 @@ python scripts/guvenlik-tarayici.py --target /src --report-format json
 
 ### Kalite Analizi
 ```bash
-python scripts/kod-kalitesi-analizoru.py --project . --output quality-report.md
+python scripts/kod-kalitesi-analizoru.py --project . --output-format text --output quality-report.md
 ```
 
 ### Entegrasyon Testi
 ```bash
 python scripts/entegrasyon-sistemi.py --test-notifications
+```
+
+### Modül Üzerinden Çalıştırma
+```bash
+python -m logosfortuna integrations -- --status
+python -m logosfortuna security -- --target . --report-format json
+python -m logosfortuna quality -- --project . --output-format json
 ```
 
 ## API Referansı
@@ -218,18 +225,18 @@ manager.configure_slack("webhook_url", "#channel")
 ```python
 from scripts.guvenlik_tarayici import SecurityScanner
 
-scanner = SecurityScanner()
-results = scanner.scan_project("/path/to/project")
-scanner.generate_report(results, "security-report.md")
+scanner = SecurityScanner("/path/to/project")
+results = scanner.tara_dosyalar()
+print(scanner.rapor_olustur(results))
 ```
 
 ### Kalite API
 ```python
 from scripts.kod_kalitesi_analizoru import QualityAnalyzer
 
-analyzer = QualityAnalyzer()
-score = analyzer.analyze_project("/path/to/project")
-print(f"Kalite Skoru: {score}/100")
+analyzer = QualityAnalyzer("/path/to/project")
+result = analyzer.analiz_et()
+print(f"Kalite Skoru: {result['toplam_skor']}/100")
 ```
 
 ## Desteklenen Ortamlar

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "logosfortuna"
+version = "1.0.0"
+description = "LogosFortuna skill automation helpers"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "requests>=2.31.0",
+]
+
+[project.scripts]
+logosfortuna = "logosfortuna.__main__:main"
+
+[tool.setuptools]
+packages = ["logosfortuna", "scripts"]

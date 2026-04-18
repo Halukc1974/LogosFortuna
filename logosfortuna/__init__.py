@@ -1,0 +1,1 @@
+"""LogosFortuna Python package."""

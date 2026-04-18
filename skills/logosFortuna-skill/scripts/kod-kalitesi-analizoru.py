@@ -4,6 +4,7 @@ LogosFortuna Kod Kalitesi Analizörü
 Kod kalitesini çok boyutlu olarak analiz eder ve 0-100 arası skor verir.
 """
 
+import argparse
 import os
 import re
 import ast
@@ -493,22 +494,48 @@ class KodKalitesiAnalizoru:
         elif skor >= 60: return "D - Düşük Kalite"
         else: return "F - Kötü Kalite"
 
-def main():
-    if len(os.sys.argv) != 2:
-        print("Kullanım: python kod-kalitesi-analizoru.py <proje_dizini>", file=os.sys.stderr)
-        os.sys.exit(1)
+def _build_argument_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="LogosFortuna kod kalitesi analizoru"
+    )
+    parser.add_argument("project_dir", nargs="?", help="Analiz edilecek proje dizini")
+    parser.add_argument("--project", dest="project_dir_flag", help="Analiz edilecek proje dizini")
+    parser.add_argument(
+        "--output-format",
+        choices=["text", "json"],
+        default="text",
+        help="Analiz sonucunun cikti formati",
+    )
+    parser.add_argument("--output", help="Raporu dosyaya yaz")
+    return parser
 
-    proje_dizini = os.sys.argv[1]
+
+def main(argv=None):
+    parser = _build_argument_parser()
+    args = parser.parse_args(argv)
+
+    proje_dizini = args.project_dir_flag or args.project_dir
+    if not proje_dizini:
+        parser.error("Bir proje dizini gerekli. Konumsal arguman veya --project kullanin.")
 
     if not os.path.isdir(proje_dizini):
         print(f"Hata: {proje_dizini} dizini bulunamadı", file=os.sys.stderr)
-        os.sys.exit(1)
+        return 1
 
     analizor = KodKalitesiAnalizoru(proje_dizini)
     sonuc = analizor.analiz_et()
-    rapor = analizor.rapor_olustur()
+    if args.output_format == "json":
+        cikti = json.dumps(sonuc, indent=2, ensure_ascii=False)
+    else:
+        cikti = analizor.rapor_olustur()
 
-    print(rapor)
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as output_file:
+            output_file.write(cikti)
+    else:
+        print(cikti)
+
+    return 0
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

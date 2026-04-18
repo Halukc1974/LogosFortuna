@@ -4,9 +4,11 @@ LogosFortuna Entegrasyon Sistemi
 GitHub, Slack, CI/CD sistemleri ile entegrasyon sağlar.
 """
 
+import argparse
 import json
 import os
 import requests
+import sys
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable
@@ -469,11 +471,41 @@ def get_integration_status() -> Dict[str, Any]:
     """Entegrasyon durumu"""
     return get_integration_manager().get_integration_status()
 
-if __name__ == "__main__":
-    # Test kodu
-    manager = get_integration_manager()
 
-    # Test bildirimleri
+def _parse_repositories(value: str) -> List[str]:
+    """Virgulle ayrilmis repo listesini temizle."""
+    return [repo.strip() for repo in value.split(",") if repo.strip()]
+
+
+def _build_argument_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="LogosFortuna entegrasyon sistemi icin kurulum ve test yardimcisi"
+    )
+    parser.add_argument("--config", help="Alternatif config dosyasi yolu")
+    parser.add_argument("--setup", action="store_true", help="Mevcut config durumunu yazdir")
+    parser.add_argument("--status", action="store_true", help="Etkin entegrasyon durumunu yazdir")
+    parser.add_argument("--test-notifications", action="store_true", help="Ornek bildirimler gonder")
+
+    parser.add_argument("--configure-github", action="store_true", help="GitHub entegrasyonunu yapilandir")
+    parser.add_argument("--token", help="GitHub veya diger servisler icin token")
+    parser.add_argument("--repos", help="Virgulle ayrilmis repo listesi")
+
+    parser.add_argument("--configure-slack", action="store_true", help="Slack entegrasyonunu yapilandir")
+    parser.add_argument("--configure-discord", action="store_true", help="Discord entegrasyonunu yapilandir")
+    parser.add_argument("--webhook", help="Slack, Discord veya custom webhook URL")
+    parser.add_argument("--channel", default="#logosfortuna", help="Slack kanali")
+
+    parser.add_argument("--add-custom-webhook", action="store_true", help="Ozel webhook ekle")
+    parser.add_argument("--events", help="Virgulle ayrilmis olay listesi")
+    parser.add_argument("--name", help="Webhook adi")
+    return parser
+
+
+def _print_json(payload: Dict[str, Any]) -> None:
+    print(json.dumps(payload, indent=2, ensure_ascii=False))
+
+
+def _run_test_notifications(manager: EntegrasyonYoneticisi) -> int:
     test_notifications = [
         {
             "event_type": "analysis_complete",
@@ -492,20 +524,79 @@ if __name__ == "__main__":
         }
     ]
 
-    print("Entegrasyon testi başlatılıyor...")
-    print("Not: Gerçek webhook'lar yapılandırılmamış, sadece log gösterilecek")
+    print("Entegrasyon testi baslatiliyor...")
+    print("Not: webhook'lar yalnizca yapilandirilmissa gercek gonderim denenir.")
 
     for notification in test_notifications:
-        print(f"Bildirim gönderiliyor: {notification['event_type']}")
+        print(f"Bildirim gonderiliyor: {notification['event_type']}")
         manager.send_notification(
             notification["event_type"],
             notification["data"],
             notification["priority"]
         )
-        time.sleep(1)  # Simüle edilmiş delay
+        time.sleep(1)
 
-    print("Entegrasyon durumu:")
-    print(json.dumps(manager.get_integration_status(), indent=2))
-
-    # Biraz bekle worker'ın işlemesi için
     time.sleep(2)
+    _print_json(manager.get_integration_status())
+    return 0
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = _build_argument_parser()
+    args = parser.parse_args(argv)
+    manager = EntegrasyonYoneticisi(config_file=args.config)
+
+    action_taken = False
+
+    if args.configure_github:
+        if not args.token or not args.repos:
+            parser.error("--configure-github icin --token ve --repos gerekli")
+        repositories = _parse_repositories(args.repos)
+        success = manager.configure_github(args.token, repositories)
+        _print_json({"action": "configure_github", "success": success, "repositories": repositories})
+        action_taken = True
+
+    if args.configure_slack:
+        if not args.webhook:
+            parser.error("--configure-slack icin --webhook gerekli")
+        success = manager.configure_slack(args.webhook, args.channel)
+        _print_json({"action": "configure_slack", "success": success, "channel": args.channel})
+        action_taken = True
+
+    if args.configure_discord:
+        if not args.webhook:
+            parser.error("--configure-discord icin --webhook gerekli")
+        success = manager.configure_discord(args.webhook)
+        _print_json({"action": "configure_discord", "success": success})
+        action_taken = True
+
+    if args.add_custom_webhook:
+        if not args.webhook or not args.events:
+            parser.error("--add-custom-webhook icin --webhook ve --events gerekli")
+        events = _parse_repositories(args.events)
+        success = manager.add_custom_webhook(args.webhook, events, args.name)
+        _print_json({"action": "add_custom_webhook", "success": success, "events": events})
+        action_taken = True
+
+    if args.setup:
+        _print_json({
+            "config_file": str(manager.config_file),
+            "status": manager.get_integration_status(),
+            "enabled_events": manager.config["notifications"]["enabled_events"]
+        })
+        action_taken = True
+
+    if args.status:
+        _print_json(manager.get_integration_status())
+        action_taken = True
+
+    if args.test_notifications:
+        return _run_test_notifications(manager)
+
+    if not action_taken:
+        parser.print_help()
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
