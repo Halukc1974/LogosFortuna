@@ -103,9 +103,11 @@ Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir. Her artim max 3 
 Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
 
 1. **Kapsamli Dogrulama** — `dogrulama-ajansi` ile 5 boyut: fonksiyonel, anayasal, niyetsel, yapisal, regresyon
-2. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
-3. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet
-4. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
+2. **Guvenlik Tarama** — `guvenlik-ajansi` ile OWASP Top 10 ve SANS Top 25 kontrolu
+3. **Kalite Analizi** — `kalite-ajansi` ile kod kalitesi skoru (0-100) ve iyileştirme önerileri
+4. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
+5. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet
+6. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
@@ -128,15 +130,25 @@ MCP araclari her ortamda mevcut olmayabilir. Bir arac "tool not found" hatasi ve
 2. Ayni araci tekrar deneme, fallback'te kal
 3. Kullaniciya bildir: "X araci mevcut degil, Y ile devam ediyorum"
 
-## Kalite Kapilari
+## Performans ve Ölçeklenebilirlik
 
-Detayli kriterler: [references/kalite-kapilari.md](./references/kalite-kapilari.md)
+Büyük projelerde optimum performans için caching ve lazy loading kullanılır:
 
-**Minimum Esikler:**
-- Testler gecmeli (varsa)
-- Syntax hatasiz olmali
-- Constitution prensipleriyle uyumlu olmali
-- Kullanicinin orijinal niyetini karsilamali
+### Caching Sistemi
+- **Analiz Sonuçları**: Sözdizimi kontrolü, bağımlılık analizi sonuçları cache'lenir
+- **TTL Mekanizması**: 24 saat önbellek süresi, otomatik temizleme
+- **Akıllı Invalidation**: Dosya değişikliklerinde ilgili cache'ler temizlenir
+- **Fallback**: MCP memory kullanılamazsa file-based cache devreye girer
+
+### Lazy Loading
+- **Büyük Projeler**: Sadece aktif/modified dosyalar analiz edilir
+- **On-Demand**: Gereken araçlar sadece ihtiyaç duyulduğunda yüklenir
+- **Chunk Processing**: Büyük dosyalar parçalara bölünerek işlenir
+
+### Paralel İşleme
+- **Çok Çekirdekli Sistemler**: Paralel kod analizi ve doğrulama
+- **Async İşlemler**: Uzun süren işlemler background'da çalışır
+- **Resource Pooling**: Sistem kaynaklarını verimli kullanır
 
 ## Faz Basarisizlik Protokolu
 
@@ -168,3 +180,162 @@ Kullanici "iptal", "dur", "vazgec", "birak" gibi ifadeler kullandiginda:
    - "Tum degisiklikleri geri al (`git checkout .`)"
    - "Farkli bir noktadan devam et"
 4. Kullanicinin secimini uygula
+
+## Çoklu Dil ve Kültür Desteği
+
+LogosFortuna uluslararası kullanım için çoklu dil desteği sağlar:
+
+### Desteklenen Diller
+- **Türkçe**: Ana dil, UTF-8 Türkçe karakterler
+- **İngilizce**: International standard, ASCII + Unicode
+- **Almanca**: Teknik mükemmellik, Umlaut desteği
+- **Fransızca**: Zarif iletişim, accented karakterler
+
+### Otomatik Dil Algılama
+- **N-gram Analizi**: Metin içeriğine göre dil tespiti
+- **Kontekst Belirleme**: Proje dili ve kullanıcı tercihleri
+- **Fallback**: İngilizce (uluslararası standart)
+
+### Kültür-Spessifik Adaptasyon
+- **Kodlama Stilleri**: Dile uygun naming conventions
+- **Dokümantasyon**: Yerel dilde açıklamalar ve yorumlar
+- **Tarih Formatları**: Kültür-e uygun tarih gösterimi
+- **İletişim Tarzı**: Dile özel profesyonel iletişim
+
+### Uluslararası Zaman Yönetimi
+- **UTC Storage**: Tüm zaman verilerini UTC'de saklama
+- **Local Display**: Kullanıcı zaman dilimine göre gösterim
+- **DST Handling**: Yaz/kış saati otomatik yönetimi
+
+## Kullanıcı Deneyimi ve Kişiselleştirme
+
+LogosFortuna gelişmiş UX özellikleri ile kullanıcı deneyimini optimize eder:
+
+### Adaptive UI Sistemi
+- **Kullanıcı Davranış Analizi**: Çalışma paternleri ve tercih öğrenme
+- **Dinamik Arayüz Adaptasyonu**: Deneyim seviyesine göre UI özelleştirme
+- **Akıllı Öneri Sistemi**: Bağlam bazlı komut ve özellik önerileri
+
+### Kişiselleştirme Motoru
+- **Çalışma Alanı Kişiselleştirme**: Özel dashboard ve kısayollar
+- **İletişim Kişiselleştirme**: Dil, ton ve detay seviyesine göre adaptasyon
+- **Gamification**: Puanlama sistemi, rozetler ve başarı takibi
+- **Öğrenme Profili**: Kişiselleştirilmiş öğrenme deneyimleri
+
+### Sesli Komut Desteği
+- **Wake Words**: "Logos", "Fortuna", "hey assistant"
+- **Çoklu Dil Ses**: Türkçe, İngilizce komut tanıma
+- **Sesli Geri Bildirim**: Durum güncellemeleri ve ilerleme raporları
+- **Erişilebilirlik**: Klavye alternatifi olarak sesli kontrol
+
+### Görsel ve Etkileşim Tasarımı
+- **Mikro Etkileşimler**: Loading animasyonları ve success feedback
+- **Responsive Design**: Mobil, tablet, desktop desteği
+- **Erişilebilirlik**: WCAG 2.1 standartları ve screen reader desteği
+- **Tema Sistemi**: Dark/light mode ve özelleştirilebilir renk şemaları
+
+## Entegrasyon ve Otomasyon
+
+LogosFortuna kapsamlı entegrasyon yetenekleri ile geliştirme süreçlerini otomatikleştirir:
+
+### GitHub Entegrasyonu
+- **PR Otomasyonu**: Kod analizi sonuçlarını otomatik PR yorumları olarak ekleme
+- **Issue Takibi**: Güvenlik açıkları ve kalite sorunlarını otomatik issue olarak açma
+- **Workflow Tetikleme**: Analiz tamamlandığında CI/CD pipeline'larını başlatma
+- **Branch Protection**: Kalite eşiğinin altında kalan PR'leri otomatik bloklama
+
+### Slack/Discord Bildirimleri
+- **Gerçek Zamanlı Uyarılar**: Analiz sonuçları, hatalar ve başarılar için anında bildirim
+- **Batch Bildirimler**: Çoklu olayları gruplayarak spam önleme
+- **Özelleştirilebilir Kanallar**: Farklı olay türleri için ayrı kanallar
+- **Sessiz Saatler**: Gece saatlerinde bildirim göndermeme
+
+### CI/CD Pipeline Entegrasyonu
+- **Jenkins/GitLab CI**: Otomatik test ve deployment tetikleme
+- **Kalite Gate'leri**: Belirlenen kalite skorlarının altında deployment engelleme
+- **Rollback Otomasyonu**: Kritik hatalar tespit edildiğinde otomatik geri alma
+- **Deployment Takibi**: Başarı/başarısızlık raporları ve metrikler
+
+### Özel Webhook Desteği
+- **Esnek Entegrasyon**: Herhangi bir sistemle webhook üzerinden bağlantı
+- **Event Filtreleme**: Sadece istenen olay türleri için tetikleme
+- **Retry Mekanizması**: Başarısız webhook'lar için otomatik yeniden deneme
+- **Güvenlik**: HMAC imza doğrulama ve rate limiting
+
+### Bildirim Sistemi
+- **Öncelik Seviyeleri**: Low/Normal/High/Critical önem dereceleri
+- **Akıllı Gruplama**: Benzer olayları birleştirerek bildirim azaltma
+- **Konfigürasyon**: Her entegrasyon için ayrı ayarlar ve filtreler
+- **İzleme**: Bildirim teslim durumu ve başarısızlık raporları
+
+### Güvenlik ve Gizlilik
+- **Token Yönetimi**: Güvenli API token saklama ve rotasyonu
+- **İzin Kontrolleri**: Sadece gerekli izinlerle entegrasyon
+- **Veri Şifreleme**: Hassas verilerin şifrelenmiş saklanması
+- **Audit Log**: Tüm entegrasyon aktivitelerinin loglanması
+
+## Güvenlik ve Kalite Kapıları
+
+LogosFortuna gelişmiş güvenlik ve kalite kontrol mekanizmaları içerir:
+
+### Güvenlik Tarama
+- **OWASP Top 10**: Web uygulama güvenlik açıkları taraması
+- **SANS Top 25**: Yazılım güvenlik zayıflıkları kontrolü
+- **Pattern Matching**: Regex tabanlı güvenlik açığı tespiti
+- **Risk Değerlendirmesi**: Kritiklik seviyesi ve exploit potansiyeli analizi
+
+### Kod Kalitesi Analizi
+- **Çok Boyutlu Skorlama**: Teknik, bakım, test, dokümantasyon boyutları
+- **Metrik Hesaplama**: Cyclomatic complexity, duplication, coverage
+- **Otomatik İyileştirme**: Yapılabilecek düzeltmeler için öneriler
+- **Trend Takibi**: Zaman içindeki kalite değişim grafikleri
+
+### Kalite Kapıları
+- **Minimum Skor Zorunlulukları**: Belirlenen eşiklerin altında geçiş engelleme
+- **İstisna Yönetimi**: Kritik durumlarda manuel onay mekanizması
+- **Raporlama**: Detaylı kalite raporları ve iyileştirme önerileri
+- **Sürekli İzleme**: Commit sonrası otomatik kalite kontrolü
+
+## Performans ve Ölçeklenebilirlik
+
+Büyük projelerde optimum performans için gelişmiş optimizasyon teknikleri:
+
+### Akıllı Caching Sistemi
+- **Çok Katmanlı Cache**: Memory, disk ve distributed cache desteği
+- **TTL Yönetimi**: Zaman bazlı otomatik cache temizleme
+- **Invalidation**: Dosya değişikliklerinde akıllı cache güncelleme
+- **Fallback**: Ana cache başarısız olursa yedek mekanizmalar
+
+### Paralel İşleme
+- **Çok Çekirdekli**: CPU çekirdeklerinden maksimum faydalanma
+- **Async İşlemler**: Uzun süren görevleri background'da çalıştırma
+- **Resource Pooling**: Sistem kaynaklarını verimli dağıtma
+- **Load Balancing**: İş yükünü dengeli dağıtma
+
+### Lazy Loading ve Chunking
+- **İsteğe Bağlı Yükleme**: Sadece gerekli bileşenleri yükleme
+- **Büyük Dosya İşleme**: Dosyaları parçalara bölerek işleme
+- **Memory Management**: Bellek kullanımını optimize etme
+- **Progressive Loading**: Adım adım veri yükleme
+
+## Hata Yönetimi ve Kurtarma
+
+Kapsamlı hata yakalama ve kurtarma mekanizmaları:
+
+### Hata Sınıflandırma
+- **Kritik Hatalar**: Sistem durmasına neden olan hatalar
+- **Kurtarılabilir Hatalar**: Retry ile çözülebilen hatalar
+- **Uyarılar**: Dikkat edilmesi gereken durumlar
+- **Bilgilendirme**: Genel durum mesajları
+
+### Otomatik Kurtarma
+- **Retry Mekanizması**: Başarısız işlemler için otomatik yeniden deneme
+- **Fallback Sistemleri**: Ana sistem başarısız olursa yedekler
+- **State Recovery**: Durum bilgilerini koruyarak yeniden başlatma
+- **Rollback**: Başarısız değişiklikleri geri alma
+
+### İzleme ve Raporlama
+- **Gerçek Zamanlı Monitoring**: Sistem durumu ve performans metrikleri
+- **Hata Loglama**: Detaylı hata kayıtları ve stack trace'ler
+- **Alert Sistemi**: Kritik durumlar için anında uyarı
+- **Analytics**: Hata paternleri ve trend analizi
