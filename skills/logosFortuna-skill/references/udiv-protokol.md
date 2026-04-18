@@ -108,6 +108,15 @@ Her yaklasimi su boyutlarda puanla (1-5):
 - Eksileri: [...]
 - Karmasiklik: [dusuk/orta/yuksek]
 
+#### Görsel Mimari (Yaklasim A)
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
 ### Yaklasim B: [isim]
 [Kisa aciklama]
 - Dosyalar: [liste]
@@ -122,6 +131,11 @@ Hangi yaklasimi tercih ediyorsun?
 ---
 
 ## Faz 3: UYGULA - Detayli Protokol
+
+### Self-Healing & Context Pruning
+
+- **Auto-Rollback Hazırlığı**: Kritik dosyalar veya 3'ten fazla dosya değişecekse terminal komutuyla `git stash save "LogosFortuna-UDIV-Backup"` veya `git checkout -b logos-fortuna-temp` yap.
+- **Akilli Baglam Budama**: Kullanıcı tasarımı onayladıktan sonra önceki fazların analiz detaylarını bir cümlelik "Kararlar" listesine indir ve hafızadan drop ederek (veya unutarak) token tasarrufu sağla. Sadece çalışılacak dosyaların aktif içeriğine odaklan.
 
 ### Artim Buyuklugu Kurallari
 
@@ -139,13 +153,12 @@ Her artimdan sonra:
 
 ### Geri Alma Protokolu (Max 3 Deneme/Artim)
 
-Her artim icin deneme_sayaci = 0 olarak basla.
+Her artim icin deneme_sayaci = 0 olarak basla. Eger 3 deneme basarisiz olursa, Faz basladiginda alinan snapshot'a (`git checkout logos-fortuna-temp` veya `git stash pop`) geri donerek sistemi kirik durumda birakma.
 
 ```
 Artim basarisiz oldu → deneme_sayaci += 1
-├── deneme_sayaci > 3 → DURDUR
-│   └── Kullaniciya raporla: "Artim [X] 3 denemede basarilamadi.
-│       Neden: [hata ozeti]. Yaklasim degisikligi gerekebilir."
+├── deneme_sayaci > 3 → DURDUR -> GIT ROLLBACK TETIKLE
+│   └── Kullaniciya raporla: "Artim [X] 3 denemede basarilamadi. Sistem rollback edildi. Yaklasim degisikligi gerekebilir."
 │
 ├── Syntax hatasi → Hemen duzelt (basit typo), tekrar dene
 ├── Test basarisizligi → Analiz et
@@ -160,7 +173,7 @@ Artim basarisiz oldu → deneme_sayaci += 1
 
 Her artim sonrasi TaskUpdate ile ilerlemeyi guncelle:
 ```
-Artim 1/5: ✅ Model dosyasi olusturuldu
+Artim 1/5: ✅ Model dosyasi olusturuldu (Token ROI: Orta)
 Artim 2/5: ✅ Schema tanimlandi
 Artim 3/5: 🔄 Service katmani yaziliyor...
 Artim 4/5: ⏳ API endpoint
@@ -171,7 +184,7 @@ Artim 5/5: ⏳ Frontend entegrasyonu
 
 ## Faz 4: DOGRULA ve OGREN - Detayli Protokol
 
-### 5 Boyutlu Dogrulama
+### 5 Boyutlu Dogrulama + Ek Testler
 
 **1. Fonksiyonel Dogrulama**
 - Tum testler geciyor mu?
@@ -186,14 +199,20 @@ Artim 5/5: ⏳ Frontend entegrasyonu
 **3. Niyetsel Dogrulama**
 - Kullanicinin Faz 1'de onayladigi niyet karsilaniyor mu?
 - Ekstra veya eksik islevsellik var mi?
-- Kullanici "X istiyorum" demisse, tam olarak X yapildi mi?
 
-**4. Yapisal Dogrulama**
+**4. Performans ve Maliyet Profiler (Token ROI)**
+- Yazılan algoritmaların Big-O notasyonunda zaman/alan karmaşıklığı hesaplandı mı?
+- LLM Token tüketimi ile yazılan özellik değeri orantılı mı?
+
+**5. Proaktif Tehdit Avcılığı (Chaos / Mutation Testleri)**
+- Sistemin ne kadar kırılgan olduğunu görmek için rastgele değerlerle (Chaos Engineering) stres testi yapılacak yerler tespit edildi mi?
+- Mutasyon testleri için zayıf notasyonlar işaretlendi mi?
+
+**6. Yapisal Dogrulama**
 - Projenin mevcut mimarisine uygun mu?
 - Isimlendirme kurallari takip ediliyor mu?
-- Dosya organizasyonu tutarli mi?
 
-**5. Regresyon Dogrulama**
+**7. Regresyon Dogrulama**
 - Mevcut islevsellik bozuldu mu?
 - Diger modullere yan etki var mi?
 - Performans etkisi var mi?

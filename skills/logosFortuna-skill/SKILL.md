@@ -81,9 +81,10 @@ Kullanicinin gercekte ne istedigini ve mevcut sistemin nasil calistigini derinle
 Birden fazla yaklasim uret (min 2, max 3), trade-off'lari degerlendir, en iyisini oner.
 
 1. **Yaklasim Uretimi** — Her yaklasimdaki dosya degisikliklerini listele
-2. **Degerlendirme** — Constitution prensipleri, gecmis kararlar, trade-off analizi
-3. **Oneri** — En iyi yaklasimi nedeniyle birlikte oner
-4. **→ KULLANICI ONAYI BEKLE** (yaklasim secimi)
+2. **Görsel Mimari Tasarımı** — Seçilen veya önerilen yaklaşımın mimarisini Mermaid.js ile görselleştir
+3. **Degerlendirme** — Constitution prensipleri, gecmis kararlar, trade-off analizi
+4. **Oneri** — En iyi yaklasimi nedeniyle birlikte oner
+5. **→ KULLANICI ONAYI BEKLE** (yaklasim secimi)
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
@@ -91,10 +92,12 @@ Birden fazla yaklasim uret (min 2, max 3), trade-off'lari degerlendir, en iyisin
 
 Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir. Her artim max 3 deneme.
 
-1. **Artim Planlama** — En kucuk bagimsiz artimlara bol
-2. **Artimsal Uygulama** — `uygulama-ajansi` calistir, her artimdan sonra dogrula (syntax, test, lint)
-3. **Ilerleme Raporu** — Tamamlanan/kalan artimlar, sorunlar ve cozumler
-4. **→ KULLANICI ONAYI BEKLE**
+1. **Self-Healing (Auto-Rollback) Hazırlığı** — Kritik değişiklikler öncesi otomatik `git stash` veya temp branch (`logos-fortuna-temp`) oluştur
+2. **Artim Planlama** — En kucuk bagimsiz artimlara bol
+3. **Akıllı Bağlam Budama (Context Pruning)** — Uzun döngülerde token tasarrufu için geçmiş logları temizleyip kararları özetata bağla
+4. **Artimsal Uygulama** — `uygulama-ajansi` calistir, her artimdan sonra dogrula (syntax, test, lint)
+5. **Ilerleme Raporu** — Tamamlanan/kalan artimlar, sorunlar ve cozumler
+6. **→ KULLANICI ONAYI BEKLE**
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
@@ -103,11 +106,13 @@ Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir. Her artim max 3 
 Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
 
 1. **Kapsamli Dogrulama** — `dogrulama-ajansi` ile 5 boyut: fonksiyonel, anayasal, niyetsel, yapisal, regresyon
-2. **Guvenlik Tarama** — `guvenlik-ajansi` ile OWASP Top 10 ve SANS Top 25 kontrolu
-3. **Kalite Analizi** — `kalite-ajansi` ile kod kalitesi skoru (0-100) ve iyileştirme önerileri
-4. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
-5. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet
-6. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
+2. **Canlı Maliyet/Performans Profiler** — Big-O notasyon analizi ve zaman/alan karmaşıklığı ile performans ölçümü
+3. **Proaktif Tehdit Avcılığı (Chaos Engineering)** — Kod kırılganlığını test etmek için Chaos ve Mutation Testing senaryoları tasarla
+4. **Guvenlik Tarama** — `guvenlik-ajansi` ile OWASP Top 10 ve SANS Top 25 kontrolu
+5. **Kalite Analizi** — `kalite-ajansi` ile kod kalitesi skoru (0-100) ve iyileştirme önerileri
+6. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
+7. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet
+8. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
