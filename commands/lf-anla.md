@@ -38,7 +38,7 @@ Sadece UDIV dongusunun Faz 1 (ANLA) asamasini calistir. Kod yazmak veya degistir
    ### Kod Akisi: [A → B → C]
    ### Bagimliliklar: [...]
    ### Riskler ve Dikkat Noktalari: [...]
-   ### Constitution Uyumu: [ilgili prenspler]
+   ### Constitution Uyumu: [ilgili prensipler]
    ```
 
 5. **Belirsizliklerde soru sor**

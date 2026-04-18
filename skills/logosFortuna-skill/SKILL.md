@@ -1,6 +1,6 @@
 ---
 name: logosFortuna-skill
-description: "Bu skill, kullanici lf mode, derin analiz yap, bunu dikkatli uygula, once anla sonra yap, iteratif gelistir, tam dongu baslat, orkestre et, UDIV veya karmasik bir gorev icin cok asamali anlama ve dogrulanmis uygulama gerektiren herhangi bir istekte bulunuldugunda kullanilmalidir. Tum mevcut Claude Code yeteneklerini tek bir iteratif dongude birlestiren meta-orkestrasyon sistemidir."
+description: "UDIV meta-orkestrasyon sistemi. Use when: lf mode, derin analiz, dikkatli uygulama, once anla sonra yap, iteratif gelistir, tam dongu baslat, orkestre et, UDIV, karmasik cok asamali gorev. Anla → Tasarla → Uygula → Dogrula dongusunu calistirir."
 user-invocable: true
 ---
 
@@ -29,8 +29,23 @@ UDIV dongusune baslamadan once gorevin karmasikligini degerlendir:
 | **Orta** | 2-5 dosya, net kapsam, tek yaklasim yeterli | Anla → Tasarla (tek oneri) → Uygula → Dogrula |
 | **Karmasik** | 5+ dosya, belirsiz kapsam, mimari etki | Tam UDIV dongusu (2-3 yaklasim) |
 
-**Basit gorevlerde** Faz 2 (Tasarla) atlanabilir — dogrudan anlama ozetinden sonra uygulamaya gecilir.
-**Karmasik gorevlerde** tum fazlar zorunludur.
+<example>
+Context: Kullanici tek dosyada basit degisiklik istiyor
+user: "Bu fonksiyonun return type'ini degistir"
+assistant: Basit gorev → Anla (hafif) → Uygula → Dogrula akisi. Faz 2 (Tasarla) atlanir.
+</example>
+
+<example>
+Context: Kullanici yeni bir API endpoint eklemek istiyor
+user: "Kullanici profil API'si ekle"
+assistant: Orta gorev → Anla → Tasarla (tek oneri) → Uygula → Dogrula akisi.
+</example>
+
+<example>
+Context: Kullanici mimari degisiklik planliyor
+user: "Monolitten mikroservise gec"
+assistant: Karmasik gorev → Tam UDIV dongusu (2-3 yaklasim karsilastirmasi) baslatilir.
+</example>
 
 ## Dongu Koruma Limitleri
 
@@ -38,11 +53,11 @@ Kisir donguyu onlemek icin asagidaki limitler **kesinlikle** uygulanir:
 
 | Limit | Deger | Asim Durumunda |
 |-------|-------|----------------|
-| Faz geri donusu (ayni faz cifti) | Max **2** | Kullaniciya eskale et: "Yaklasim degisikligi gerekiyor" |
+| Faz geri donusu (ayni faz cifti) | Max **2** | Kullaniciya eskale et |
 | Artim deneme sayisi (ayni artim) | Max **3** | DURDUR, kullaniciya raporla |
-| Dogrulama-Uygulama turu | Max **2** | Kalan sorunlari kullaniciya sun, karar kullanicida |
-| Faz 1 kesfetme adimi | Max **5** arac cagrisi | "Yeterli Anlama Kriterleri"nin %80'i yeterli, ilerle |
-| Toplam UDIV dongu tekrari | Max **1** tam tekrar | Ikinci tam dngude hala basarisizsa tamamen dur |
+| Dogrulama-Uygulama turu | Max **2** | Kalan sorunlari kullaniciya sun |
+| Faz 1 kesfetme adimi | Max **5** arac cagrisi | Mevcut bilgiyle ilerle |
+| Toplam UDIV dongu tekrari | Max **1** tam tekrar | Tamamen dur |
 
 **Sayac Takibi**: Her faz basinda geri_donus_sayaci=0 olarak basla. Her geri donuste +1 artir. Limite ulasinca kullaniciya acikla ve karar iste.
 
@@ -50,123 +65,72 @@ Kisir donguyu onlemek icin asagidaki limitler **kesinlikle** uygulanir:
 
 ### Faz 1: ANLA
 
-Amac: Kullanicinin gercekte ne istedigini ve mevcut sistemin nasil calistigini derinlemesine kavra.
+Kullanicinin gercekte ne istedigini ve mevcut sistemin nasil calistigini derinlemesine kavra. Maksimum 5 arac cagrisi. "Yeterli Anlama Kriterleri"nin en az 4/5'i karsilaninca dur.
 
-**Kesfetme Limiti**: Maksimum 5 arac cagrisi (Explore agent dahil). Asagidaki "Yeterli Anlama Kriterleri"nin en az 4/5'i karsilaninca dur, hepsini karsilamaya calisarak donguye girme.
-
-**Adimlar:**
-
-1. **Baglam Yukle**
-   - Memory graph'i oku: `mcp__memory__read_graph` ve `mcp__memory__search_nodes` ile bu proje/alan hakkinda onceki bilgileri cek
-   - CLAUDE.md dosyasini oku (proje kurallari ve teknolojiler)
-   - Varsa `.specify/memory/constitution.md` oku (proje prensipleri)
-
-2. **Derin Kesfet**
-   - `anlama-ajansi` agent'ini calistir — kod yollarini iz, bagimliliklari haritalandir, etki analizi yap
-   - Birden fazla Explore agent'i paralel calistir (farkli odak alanlari)
-   - Mevcut kaliplari, utility'leri ve yeniden kullanilabilir yapilari tespit et
-
-3. **Yapilandirilmis Dusunme**
-   - `mcp__sequential-thinking__sequentialthinking` ile karmasik isteklerde adim adim akil yurutme yap
-   - Belirsiz noktalari, varsayimlari ve riskleri belirle
-
-4. **Netlistirme**
-   - Belirsiz veya cok anlamli noktalarda kullaniciya soru sor (AskUserQuestion)
-   - Asla buyuk varsayimlar yapma
-
-5. **Anlama Ozeti Sun**
-   - Kullanicinin niyeti (ne istedi vs ne soyledi)
-   - Mevcut sistem durumu (ilgili dosyalar, mimari, bagimliliklar)
-   - Etki alani (hangi dosyalar/moduller etkilenecek)
-   - Risk ve kisitlar
-   - Onerilen yaklasimlarin on gorunumu
-
+1. **Baglam Yukle** — Memory graph, CLAUDE.md, constitution.md
+2. **Derin Kesfet** — `anlama-ajansi` agent'ini calistir, kod yollarini iz, bagimliliklari haritalandir
+3. **Yapilandirilmis Dusunme** — Karmasik isteklerde `mcp__sequential-thinking__sequentialthinking` kullan
+4. **Netlistirme** — Belirsiz noktalarda kullaniciya soru sor
+5. **Anlama Ozeti Sun** — Niyet, mevcut durum, etki alani, risk, on yaklasim
 6. **→ KULLANICI ONAYI BEKLE**
+
+→ Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
 ### Faz 2: TASARLA
 
-Amac: Birden fazla yaklasim uret, trade-off'lari degerlendir, en iyisini oner.
+Birden fazla yaklasim uret (min 2, max 3), trade-off'lari degerlendir, en iyisini oner.
 
-**Adimlar:**
-
-1. **Yaklasim Uretimi**
-   - En az 2, en fazla 3 farkli yaklasim belirle
-   - Her yaklasimdaki dosya degisikliklerini, yeni dosyalari ve silmeleri listele
-
-2. **Degerlendirme**
-   - Her yaklasimi constitution prensipleriyle karsilastir
-   - Memory'deki gecmis kararlarla uyum kontrol et
-   - Basitlik vs genisletilebilirlik vs performans trade-off'larini sun
-
-3. **Oneri**
-   - En iyi yaklasimi nedeniyle birlikte oner
-   - Uygulama adimlarini kucuk artimlar olarak sirala
-
+1. **Yaklasim Uretimi** — Her yaklasimdaki dosya degisikliklerini listele
+2. **Degerlendirme** — Constitution prensipleri, gecmis kararlar, trade-off analizi
+3. **Oneri** — En iyi yaklasimi nedeniyle birlikte oner
 4. **→ KULLANICI ONAYI BEKLE** (yaklasim secimi)
+
+→ Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
 ### Faz 3: UYGULA
 
-Amac: Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir.
+Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir. Her artim max 3 deneme.
 
-**Adimlar:**
-
-1. **Artim Planlama**
-   - Onaylanmis tasarimi en kucuk bagimsiz artrimlara bol
-   - Her artimin dogrulama kriterini belirle
-
-2. **Artimsal Uygulama Dongusu** (her artim icin, **max 3 deneme**):
-   - `uygulama-ajansi` agent'ini calistir
-   - Kod degisikligi yap
-   - Hemen dogrula (syntax, test, lint)
-   - Basarili → sonraki artrima gec
-   - Basarisiz (deneme < 3) → analiz et, duzelt veya geri al, tekrar dene
-   - Basarisiz (deneme = 3) → **DURDUR**, kullaniciya raporla: "Bu artim 3 denemede basarilamadi: [neden]. Alternatif yaklasim gerekiyor."
-
-3. **Ilerleme Raporu**
-   - Tamamlanan ve kalan artimlari goster
-   - Karsilasilan sorunlari ve cozumleri listele
-
+1. **Artim Planlama** — En kucuk bagimsiz artimlara bol
+2. **Artimsal Uygulama** — `uygulama-ajansi` calistir, her artimdan sonra dogrula (syntax, test, lint)
+3. **Ilerleme Raporu** — Tamamlanan/kalan artimlar, sorunlar ve cozumler
 4. **→ KULLANICI ONAYI BEKLE**
+
+→ Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
 ### Faz 4: DOGRULA ve OGREN
 
-Amac: Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
+Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
 
-**Adimlar:**
+1. **Kapsamli Dogrulama** — `dogrulama-ajansi` ile 5 boyut: fonksiyonel, anayasal, niyetsel, yapisal, regresyon
+2. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
+3. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet
+4. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
 
-1. **Kapsamli Dogrulama**
-   - `dogrulama-ajansi` agent'ini calistir
-   - 5 boyut: fonksiyonel, anayasal, niyetsel, yapisal, regresyon
-   - Her boyut icin gecti/kaldi ve guven skoru (0-100)
+→ Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
-2. **Sorun Cozumu** (varsa, **max 2 dogrulama-uygulama turu**)
-   - Kritik sorunlar → Faz 3'e geri don (geri_donus_sayaci kontrol et)
-   - Kucuk sorunlar → yerinde duzelt
-   - 2. turda hala sorun varsa → kullaniciya sun: "Su sorunlar kaldi: [...]. Devam mi, farkli yaklasim mi?"
+## Arac Orkestrasyon
 
-3. **Ogrenme**
-   - `ogrenme-ajansi` agent'ini calistir
-   - Kullanici tercihleri, proje kaliplari, basarili yaklasimlar cikar
-   - `mcp__memory__create_entities` ve `mcp__memory__add_observations` ile kaydet
-
-4. **Son Rapor**
-   - Ne yapildi, nasil dogrulandi, ne ogrendi ozeti
-
-## Arac Orkestrasyon Kurallari
-
-Detayli arac secim mantigi icin: `references/arac-orkestrasyon.md`
+Detayli arac secim mantigi ve fallback tablosu: [references/arac-orkestrasyon.md](./references/arac-orkestrasyon.md)
 
 **Hizli Referans:**
-- **Bilgi kaliciligi** → `mcp__memory__*` (entity, observation, relation)
+- **Bilgi kaliciligi** → `mcp__memory__*`
 - **Karmasik akil yurutme** → `mcp__sequential-thinking__sequentialthinking`
-- **Kod kesfetme** → Explore agent veya dogrudan Glob/Grep
+- **Kod kesfetme** → Explore agent veya Glob/Grep
 - **Harici bilgi** → `mcp__brave-search__brave_web_search` veya WebSearch
 - **GitHub islemleri** → `mcp__github__*`
-- **Dosya islemleri** → Read, Write, Edit (dogrudan tool'lar oncelikli)
+- **Dosya islemleri** → Read, Write, Edit
+
+## Arac Erisilebilirlik
+
+MCP araclari her ortamda mevcut olmayabilir. Bir arac "tool not found" hatasi verirse:
+1. [Fallback tablosuna](./references/arac-orkestrasyon.md) bak ve alternatife gec
+2. Ayni araci tekrar deneme, fallback'te kal
+3. Kullaniciya bildir: "X araci mevcut degil, Y ile devam ediyorum"
 
 ## Kalite Kapilari
 
-Detayli kriterler icin: `references/kalite-kapilari.md`
+Detayli kriterler: [references/kalite-kapilari.md](./references/kalite-kapilari.md)
 
 **Minimum Esikler:**
 - Testler gecmeli (varsa)
@@ -177,27 +141,13 @@ Detayli kriterler icin: `references/kalite-kapilari.md`
 ## Faz Basarisizlik Protokolu
 
 ```
-Faz 4 basarisiz → geri_donus_sayaci[4→3] += 1
-  ├── sayac <= 2 → Faz 3'e don (sorunlu artimlari duzelt)
-  └── sayac > 2  → DURDUR: "Bu yaklasim 2 dogrulama turunda basarilamadi. 
-                    Farkli yaklasim onerilmeli." → Kullaniciya eskale et
-
-Faz 3 basarisiz → geri_donus_sayaci[3→2] += 1
-  ├── sayac <= 2 → Faz 2'ye don (yaklasimi revize et)
-  └── sayac > 2  → DURDUR: "Secilen yaklasim uygulanamadi.
-                    Tamamen farkli bir yaklasim gerekiyor." → Kullaniciya eskale et
-
-Faz 2 basarisiz → geri_donus_sayaci[2→1] += 1
-  ├── sayac <= 2 → Faz 1'e don (anlamayi derinlestir)
-  └── sayac > 2  → DURDUR: "Yeterli anlama olusturulamadi.
-                    Kullanicidan daha fazla baglam gerekiyor." → Kullaniciya eskale et
-
+Faz 4 basarisiz → sayac[4→3] += 1 → sayac <= 2: Faz 3'e don | sayac > 2: DURDUR
+Faz 3 basarisiz → sayac[3→2] += 1 → sayac <= 2: Faz 2'ye don | sayac > 2: DURDUR
+Faz 2 basarisiz → sayac[2→1] += 1 → sayac <= 2: Faz 1'e don | sayac > 2: DURDUR
 Faz 1 basarisiz → Kullaniciya daha fazla bilgi sor
 ```
 
-Her geri donuste:
-1. Neden geri donuldugunu acikla
-2. Onceki fazin ciktisini guncelle
+Her geri donuste neden geri donuldugunu acikla ve onceki fazin ciktisini guncelle.
 3. Geri donus sayacini raporla: "Bu faz ciftinde X/2 geri donus kullanildi"
 
 ## Iptal Protokolu

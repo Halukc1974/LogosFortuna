@@ -76,11 +76,17 @@ mkdir -p "$CLAUDE_DIR/plugins"
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
+# Shell degiskenlerini Python'a guvenli sekilde aktar
+export LF_INSTALLED_PLUGINS="$INSTALLED_PLUGINS"
+export LF_PLUGIN_DIR="$PLUGIN_DIR"
+export LF_TIMESTAMP="$TIMESTAMP"
+export LF_SETTINGS_FILE="$SETTINGS_FILE"
+
 if [ -f "$INSTALLED_PLUGINS" ]; then
     # Mevcut dosyada logosFortuna-skill var mi kontrol et
     if python3 -c "
-import json, sys
-with open('$INSTALLED_PLUGINS') as f:
+import json, sys, os
+with open(os.environ['LF_INSTALLED_PLUGINS']) as f:
     data = json.load(f)
 if 'logosFortuna-skill@local' in data.get('plugins', {}):
     sys.exit(0)
@@ -91,19 +97,22 @@ else:
     else
         # logosFortuna-skill@local ekle
         python3 -c "
-import json
-with open('$INSTALLED_PLUGINS') as f:
+import json, os
+plugins_path = os.environ['LF_INSTALLED_PLUGINS']
+plugin_dir = os.environ['LF_PLUGIN_DIR']
+timestamp = os.environ['LF_TIMESTAMP']
+with open(plugins_path) as f:
     data = json.load(f)
 if 'plugins' not in data:
     data['plugins'] = {}
 data['plugins']['logosFortuna-skill@local'] = [{
     'scope': 'user',
-    'installPath': '$PLUGIN_DIR',
+    'installPath': plugin_dir,
     'version': '1.0.0',
-    'installedAt': '$TIMESTAMP',
-    'lastUpdated': '$TIMESTAMP'
+    'installedAt': timestamp,
+    'lastUpdated': timestamp
 }]
-with open('$INSTALLED_PLUGINS', 'w') as f:
+with open(plugins_path, 'w') as f:
     json.dump(data, f, indent=2)
 print('Eklendi')
 "
@@ -112,20 +121,23 @@ print('Eklendi')
 else
     # Yeni dosya olustur
     python3 -c "
-import json
+import json, os
+plugins_path = os.environ['LF_INSTALLED_PLUGINS']
+plugin_dir = os.environ['LF_PLUGIN_DIR']
+timestamp = os.environ['LF_TIMESTAMP']
 data = {
     'version': 2,
     'plugins': {
         'logosFortuna-skill@local': [{
             'scope': 'user',
-            'installPath': '$PLUGIN_DIR',
+            'installPath': plugin_dir,
             'version': '1.0.0',
-            'installedAt': '$TIMESTAMP',
-            'lastUpdated': '$TIMESTAMP'
+            'installedAt': timestamp,
+            'lastUpdated': timestamp
         }]
     }
 }
-with open('$INSTALLED_PLUGINS', 'w') as f:
+with open(plugins_path, 'w') as f:
     json.dump(data, f, indent=2)
 print('Olusturuldu')
 "
@@ -137,8 +149,9 @@ echo -e "${YELLOW}[5/5]${NC} Plugin etkinlestiriliyor..."
 
 if [ -f "$SETTINGS_FILE" ]; then
     python3 -c "
-import json
-with open('$SETTINGS_FILE') as f:
+import json, os
+settings_path = os.environ['LF_SETTINGS_FILE']
+with open(settings_path) as f:
     data = json.load(f)
 if 'enabledPlugins' not in data:
     data['enabledPlugins'] = {}
@@ -146,19 +159,20 @@ if data['enabledPlugins'].get('logosFortuna-skill@local') is True:
     print('Zaten etkin')
 else:
     data['enabledPlugins']['logosFortuna-skill@local'] = True
-    with open('$SETTINGS_FILE', 'w') as f:
+    with open(settings_path, 'w') as f:
         json.dump(data, f, indent=2)
     print('Etkinlestirildi')
 "
 else
     python3 -c "
-import json
+import json, os
+settings_path = os.environ['LF_SETTINGS_FILE']
 data = {
     'enabledPlugins': {
         'logosFortuna-skill@local': True
     }
 }
-with open('$SETTINGS_FILE', 'w') as f:
+with open(settings_path, 'w') as f:
     json.dump(data, f, indent=2)
 print('Yeni settings olusturuldu')
 "

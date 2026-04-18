@@ -4,8 +4,12 @@
 
 set -euo pipefail
 
-# stdin'den tool input'u oku
-INPUT=$(cat)
+# Guvenli temp dosya olustur ve cikista temizle
+TEMP_ERR=$(mktemp) || exit 0
+trap 'rm -f "$TEMP_ERR"' EXIT
+
+# stdin'den tool input'u oku (max 64KB)
+INPUT=$(head -c 65536)
 
 # python3 mevcut degilse sessizce cik (dogrulama yapilamaz ama engelleme)
 if ! command -v python3 &>/dev/null; then
@@ -39,8 +43,8 @@ EXT="${FILE_PATH##*.}"
 case "$EXT" in
   py)
     if command -v python3 &>/dev/null; then
-      if ! python3 -m py_compile "$FILE_PATH" 2>/tmp/lf_syntax_err; then
-        ERR=$(cat /tmp/lf_syntax_err)
+      if ! python3 -m py_compile "$FILE_PATH" 2>"$TEMP_ERR"; then
+        ERR=$(cat "$TEMP_ERR")
         echo "{\"decision\": \"block\", \"reason\": \"Python syntax hatasi: ${ERR}\"}"
         exit 2
       fi
@@ -48,8 +52,8 @@ case "$EXT" in
     ;;
   json)
     if command -v python3 &>/dev/null; then
-      if ! python3 -m json.tool "$FILE_PATH" > /dev/null 2>/tmp/lf_syntax_err; then
-        ERR=$(cat /tmp/lf_syntax_err)
+      if ! python3 -m json.tool "$FILE_PATH" > /dev/null 2>"$TEMP_ERR"; then
+        ERR=$(cat "$TEMP_ERR")
         echo "{\"decision\": \"block\", \"reason\": \"Gecersiz JSON: ${ERR}\"}"
         exit 2
       fi

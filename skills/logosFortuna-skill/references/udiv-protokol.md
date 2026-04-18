@@ -17,7 +17,7 @@ UDIV (Anla-Tasarla-Uygula-Dogrula) dongusu, her gorevi dort fazda cozer. Bu belg
 
 2. **Proje Baglami**
    - CLAUDE.md → aktif teknolojiler, proje yapisi, komutlar
-   - constitution.md → prenspler (varsa)
+   - constitution.md → prensipler (varsa)
    - Son git log → yakin zamandaki degisiklikler
 
 3. **Kod Kesfetme Stratejisi**
@@ -134,7 +134,7 @@ Hangi yaklasimi tercih ediyorsun?
 Her artimdan sonra:
 1. **Syntax**: Dosya tipi kontrol (py_compile, tsc --noEmit)
 2. **Import**: Yeni import'lar dogru mu?
-3. **Test**: Ilgili testler geciyormu? (`pytest dosya.py`, `npm test`)
+3. **Test**: Ilgili testler geciyor mu? (`pytest dosya.py`, `npm test`)
 4. **Lint**: Stil kurallari saglaniyor mu? (`ruff check`, `eslint`)
 
 ### Geri Alma Protokolu (Max 3 Deneme/Artim)

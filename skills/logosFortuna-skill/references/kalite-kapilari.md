@@ -28,7 +28,7 @@ Bu belge, LogosFortuna-Skill'in Faz 4 (DOGRULA) asamasinda ve PostToolUse hook'l
 
 **Kural**: Lint uyarilari kabul edilebilir, lint HATALARI kabul edilemez.
 
-### Kapi 3: Test Kapsamai
+### Kapi 3: Test Kapsami
 
 | Durum | Beklenti |
 |-------|----------|
@@ -44,13 +44,13 @@ Bu belge, LogosFortuna-Skill'in Faz 4 (DOGRULA) asamasinda ve PostToolUse hook'l
 ### Kapi 4: Guvenlik
 
 - Hassas veri yok (API key, sifre, credential hardcoded degil)
-- SQL injection korumasai (parametreli sorgular)
-- XSS korumasl (cikti sanitizasyonu)
-- Command injection korumasl (shell komutlarinda degisken kacirma)
+- SQL injection korumasi (parametreli sorgular)
+- XSS korumasi (cikti sanitizasyonu)
+- Command injection korumasi (shell komutlarinda degisken kacirma)
 
 ---
 
-## Soruuetici Projesine Ozel Kapilar
+## Soruüretici Projesine Ozel Kapilar
 
 ### Pedagojik Dogruluk (Constitution Prensip I)
 

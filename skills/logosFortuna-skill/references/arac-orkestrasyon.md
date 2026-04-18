@@ -72,7 +72,7 @@ Mevcut degilse asagidaki fallback'i kullan:
 | Arac | Ne Zaman |
 |------|----------|
 | `mcp__brave-search__brave_web_search` | Teknoloji/kutuphane arastirmasi |
-| `WebSearch` | Genel web aramasl |
+| `WebSearch` | Genel web aramasi |
 | `WebFetch` | Belirli bir URL'den bilgi cekmek |
 | `mcp__fetch__fetch` | API dokumantasyonu okumak |
 

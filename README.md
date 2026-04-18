@@ -30,7 +30,7 @@ Claude Code'u yeniden baslat. Plugin otomatik olarak taninacak.
 
 ## Dongu Koruma
 
-Kisir dongu ve sonsuz tekrarlarl onlemek icin yerlesik limitler:
+Kisir dongu ve sonsuz tekrarlari onlemek icin yerlesik limitler:
 
 | Mekanizma | Limit | Davranis |
 |-----------|-------|----------|
