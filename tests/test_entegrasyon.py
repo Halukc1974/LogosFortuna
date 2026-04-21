@@ -2,11 +2,86 @@
 
 import json
 import time
+from types import SimpleNamespace
 
-from conftest import _load_skill_module
+from tests.conftest import _load_skill_module
 
 _mod = _load_skill_module("entegrasyon_sistemi", "entegrasyon-sistemi.py")
 EntegrasyonYoneticisi = _mod.EntegrasyonYoneticisi
+
+
+class DummyResponse:
+    def __init__(self, payload, status_code=200):
+        self._payload = payload
+        self.status_code = status_code
+        self.content = b"{}"
+
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return self._payload
+
+
+def _fake_github_request(method, url, headers=None, params=None, json=None, timeout=None):
+    if url.endswith("/user"):
+        return DummyResponse({"login": "haluk", "name": "Haluk Celebi"})
+    if url.endswith("/repos/owner/repo/pulls"):
+        return DummyResponse([
+            {
+                "number": 12,
+                "title": "Improve orchestration",
+                "state": "open",
+                "draft": False,
+                "user": {"login": "octocat"},
+                "head": {"ref": "feature/udiv"},
+                "html_url": "https://github.com/owner/repo/pull/12",
+                "created_at": "2026-04-21T00:00:00Z",
+            }
+        ])
+    if url.endswith("/repos/owner/repo/issues") and method == "GET":
+        return DummyResponse([
+            {
+                "number": 5,
+                "title": "Bug report",
+                "state": "open",
+                "user": {"login": "octocat"},
+                "labels": [{"name": "bug"}],
+                "html_url": "https://github.com/owner/repo/issues/5",
+                "created_at": "2026-04-21T00:00:00Z",
+            },
+            {
+                "number": 6,
+                "title": "PR masquerading as issue",
+                "state": "open",
+                "user": {"login": "octocat"},
+                "labels": [],
+                "html_url": "https://github.com/owner/repo/issues/6",
+                "created_at": "2026-04-21T00:00:00Z",
+                "pull_request": {"url": "https://api.github.com/repos/owner/repo/pulls/6"},
+            },
+        ])
+    if url.endswith("/repos/owner/repo/issues") and method == "POST":
+        return DummyResponse(
+            {
+                "number": 77,
+                "title": json["title"],
+                "state": "open",
+                "html_url": "https://github.com/owner/repo/issues/77",
+                "labels": [{"name": label} for label in json.get("labels", [])],
+            },
+            status_code=201,
+        )
+    if url.endswith("/repos/owner/repo/issues/12/comments"):
+        return DummyResponse(
+            {
+                "id": 9001,
+                "html_url": "https://github.com/owner/repo/pull/12#issuecomment-9001",
+                "body": json["body"],
+            },
+            status_code=201,
+        )
+    raise AssertionError(f"Beklenmeyen GitHub istegi: {method} {url}")
 
 
 class TestEntegrasyonYoneticisi:
@@ -128,3 +203,71 @@ class TestEntegrasyonYoneticisi:
     def test_main_cli_setup(self, tmp_config):
         result = _mod.main(["--config", str(tmp_config), "--setup"])
         assert result == 0
+
+    def test_github_connection_status(self, tmp_config, monkeypatch):
+        monkeypatch.setattr(_mod.requests, "request", _fake_github_request)
+        manager = EntegrasyonYoneticisi(config_file=tmp_config)
+        manager.configure_github("test_token", ["owner/repo"])
+
+        status = manager.get_github_connection_status()
+
+        assert status["authenticated"] is True
+        assert status["viewer"] == "haluk"
+        assert status["repositories"] == ["owner/repo"]
+
+    def test_list_github_pull_requests(self, tmp_config, monkeypatch):
+        monkeypatch.setattr(_mod.requests, "request", _fake_github_request)
+        manager = EntegrasyonYoneticisi(config_file=tmp_config)
+        manager.configure_github("test_token", ["owner/repo"])
+
+        payload = manager.list_github_pull_requests()
+
+        assert payload["repository"] == "owner/repo"
+        assert payload["count"] == 1
+        assert payload["items"][0]["number"] == 12
+        assert payload["items"][0]["branch"] == "feature/udiv"
+
+    def test_list_github_issues_filters_pull_requests(self, tmp_config, monkeypatch):
+        monkeypatch.setattr(_mod.requests, "request", _fake_github_request)
+        manager = EntegrasyonYoneticisi(config_file=tmp_config)
+        manager.configure_github("test_token", ["owner/repo"])
+
+        payload = manager.list_github_issues()
+
+        assert payload["count"] == 1
+        assert payload["items"][0]["number"] == 5
+        assert payload["items"][0]["labels"] == ["bug"]
+
+    def test_create_github_issue(self, tmp_config, monkeypatch):
+        monkeypatch.setattr(_mod.requests, "request", _fake_github_request)
+        manager = EntegrasyonYoneticisi(config_file=tmp_config)
+        manager.configure_github("test_token", ["owner/repo"])
+
+        payload = manager.create_github_issue("Yeni issue", "Detay", labels=["enhancement"])
+
+        assert payload["number"] == 77
+        assert payload["labels"] == ["enhancement"]
+
+    def test_comment_on_github_pull_request(self, tmp_config, monkeypatch):
+        monkeypatch.setattr(_mod.requests, "request", _fake_github_request)
+        manager = EntegrasyonYoneticisi(config_file=tmp_config)
+        manager.configure_github("test_token", ["owner/repo"])
+
+        payload = manager.comment_on_github_pull_request(12, "LGTM")
+
+        assert payload["pull_number"] == 12
+        assert payload["comment_id"] == 9001
+        assert payload["body"] == "LGTM"
+
+    def test_main_cli_github_list_pulls(self, tmp_config, monkeypatch, capsys):
+        monkeypatch.setattr(_mod.requests, "request", _fake_github_request)
+        manager = EntegrasyonYoneticisi(config_file=tmp_config)
+        manager.configure_github("test_token", ["owner/repo"])
+        manager.save_config()
+
+        result = _mod.main(["--config", str(tmp_config), "--github-list-pulls"])
+        captured = capsys.readouterr()
+
+        assert result == 0
+        payload = json.loads(captured.out)
+        assert payload["items"][0]["number"] == 12

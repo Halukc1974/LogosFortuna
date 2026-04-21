@@ -55,89 +55,70 @@ UDIV dongusu gorev karmasikligina gore adapte olur:
 cd ~/.claude/plugins/local/logosFortuna-skill && git pull
 ```
 
-## Dünya Sınıfı Özellikler
+## Durum Özeti
 
-LogosFortuna artık dünya standartlarında bir skill haline geldi:
+Bu repo calisan bir cekirdege sahip, ancak butun ileri ozellikler henuz tam anlamiyla uctan uca degil. Asagidaki tablo mevcut durumu ozetler:
 
-### 🔒 Güvenlik Tarama
-- **OWASP Top 10** ve **SANS Top 25** kontrolü
-- Regex tabanlı güvenlik açığı tespiti
-- Risk değerlendirmesi ve exploit analizi
+| Alan | Durum | Not |
+|------|-------|-----|
+| UDIV runtime | Kısmi ama somut | `python -m logosfortuna udiv` faz plani ve guardrail uretir |
+| Güvenlik tarama | Hazır | OWASP/SANS regex + heuristic tarama ve rapor uretiliyor |
+| Kalite analizi | Hazır | 4 boyutlu skor ve rapor uretiliyor |
+| Entegrasyon teslimi | Kısmi | Slack, Discord ve custom webhook gonderimi var; GitHub/Jenkins/GitLab tarafı config agirlikli |
+| Çoklu dil | Kısmi | Dil algılama ve localization var; top-level CLI wrapper yok |
+| UX / kişiselleştirme | Deneysel | Profil, öneri ve gamification var; editor UI entegrasyonu yok |
+| Auto-rollback / chaos / Big-O profiler | Planlanan | Dokumanda var, repoda tam runtime karsiligi henuz yok |
 
-### 📊 Kalite Analizi
-- **0-100 arası çok boyutlu kalite skoru**
-- Teknik karmaşıklık, bakım kolaylığı, test kapsamı
-- Otomatik iyileştirme önerileri
+## Çalışan Yüzeyler
 
-### 🌍 Çoklu Dil Desteği
-- **Türkçe, İngilizce, Almanca, Fransızca**
-- Otomatik dil algılama ve çeviri
-- Kültür-spesifik kodlama standartları
+### Python runtime
+- `python -m logosfortuna udiv -- --task "..."` ile somut UDIV faz plani olusturur
+- `python -m logosfortuna integrations -- --status` ile entegrasyon durumunu gosterir
+- `python -m logosfortuna security -- --target . --report-format json` ile guvenlik taramasi yapar
+- `python -m logosfortuna quality -- --project . --output-format json` ile kalite analizi yapar
 
-### 🎯 Kişiselleştirilmiş UX
-- **Adaptive UI** ve gamification sistemi
-- Sesli komut desteği ve erişilebilirlik
-- Kullanıcı davranış öğrenme
+### Claude tarafı
+- `.claude-plugin/` altinda plugin metadata bulunur
+- `commands/` ve `agents/` altinda Claude odakli prompt ve agent tanimlari bulunur
 
-### 🔗 Kapsamlı Entegrasyonlar
+### Copilot / VS Code tarafı
+- `.github/copilot-instructions.md` proje genel davranisini tanimlar
+- `.github/prompts/lf*.prompt.md` ile `/lf`, `/lf-anla`, `/lf-dogrula` karsiliklari bulunur
+- `.github/agents/` ve `.github/skills/logosfortuna-skill/` altinda Copilot kesif dosyalari bulunur
 
-#### GitHub Entegrasyonu
-```bash
-# PR otomasyonu
-python scripts/entegrasyon-sistemi.py --configure-github --token YOUR_TOKEN --repos repo1,repo2
-```
+## Uygulanan Moduller
 
-#### Slack/Discord Bildirimleri
-```bash
-# Slack webhook yapılandırma
-python scripts/entegrasyon-sistemi.py --configure-slack --webhook https://hooks.slack.com/... --channel #logosfortuna
-```
+### Güvenlik Tarama
+- OWASP ve SANS siniflarina gore regex tabanli tarama
+- Risk puanli bulgu modeli ve markdown/json raporlama
 
-#### CI/CD Pipeline Bağlantısı
-- Jenkins ve GitLab CI entegrasyonu
-- Otomatik kalite kapıları
-- Deployment takibi ve rollback
+### Kalite Analizi
+- 0-100 arasi cok boyutlu skor
+- Teknik kalite, bakim, test ve dokumantasyon analizi
 
-#### Özel Webhook Desteği
-```python
-from scripts.entegrasyon_sistemi import add_custom_webhook
+### Çoklu Dil Desteği
+- Turkce, Ingilizce, Almanca ve Fransizca icin localization verisi
+- Basit n-gram/frekans tabanli dil algilama
 
-# Özel sistem entegrasyonu
-add_custom_webhook(
-    url="https://your-system.com/webhook",
-    events=["analysis_complete", "error_detected"],
-    name="custom-integration"
-)
-```
+### Entegrasyonlar
+- Slack ve Discord webhook gonderimi
+- Custom webhook retry/backoff desteği
+- GitHub/Jenkins/GitLab icin config ve durum modeli
 
-### ⚡ Performans ve Ölçeklenebilirlik
+## Kısmi / Planlanan Alanlar
 
-#### Akıllı Caching ve Memory Yönetimi
-- **Çok katmanlı cache sistemi** (memory, disk, distributed)
-- Akıllı Bağlam Budama (Context Pruning & Summarization)
-- Büyük projelerde lazy loading
-
-#### Paralel İşleme
-- **Çok çekirdekli CPU optimizasyonu**
-- Canlı Maliyet/Performans Profiler (Big-O analizator)
-- Load balancing ve chunk processing
-
-### 🛡️ Hata Yönetimi ve Güvenilirlik
-
-#### Otomatik Kurtarma (Self-Healing)
-- **Git Rollback Mekanizması**: İşlem öncesi `stash` veya `temp branch` oluşturma
-- State recovery ve geri alma (auto-rollback) yetenekleri
-- Gerçek zamanlı monitoring
-
-#### Gelişmiş Test Sistemleri
-- Proaktif Tehdit Avcılığı ve Chaos Engineering
-- Mutation Testing algoritmaları
-- Detaylı hata logları ve analytics
+- Memory graph entegrasyonu ve otomatik MCP kayitlari host ortama bagli
+- Git rollback ve temp branch akisi belgelenmis durumda, fakat repoda tam otomatiklestirilmis degil
+- Chaos engineering, mutation testing ve Big-O profiler dokumanda tanimli; uygulama tarafi henuz parcali
+- Coklu dil ve UX modulleri Python API olarak mevcut, fakat packaging tarafinda birinci sinif CLI yuzeyi degil
 
 ## Yapılandırma
 
 ### Temel Kurulum
 ```bash
+# UDIV faz planini olustur
+python -m logosfortuna udiv -- --task "Yeni kullanıcı API'si ekle"
+
 # Entegrasyonları yapılandır
 python scripts/entegrasyon-sistemi.py --setup
 
@@ -146,10 +127,9 @@ python scripts/guvenlik-tarayici.py --target /path/to/project --report-format js
 
 # Kalite analizörü
 python scripts/kod-kalitesi-analizoru.py --project /path/to/project --output-format json
-
-# Çoklu dil sistemi
-python scripts/coklu-dil-sistemi.py --detect-language --translate-to tr
 ```
+
+Not: `coklu-dil-sistemi.py` su an top-level CLI wrapper olarak paketlenmis degil; Python API veya skill icinden kullanilir.
 
 ### Gelişmiş Yapılandırma
 ```json
@@ -181,6 +161,12 @@ python scripts/coklu-dil-sistemi.py --detect-language --translate-to tr
 ```
 → Derin anlama → Tasarım önerileri → Artımlı uygulama → 5 boyutlu doğrulama
 
+CLI tarafinda ayni akisin plan iskeleti:
+
+```bash
+python -m logosfortuna udiv -- --task "Yeni kullanıcı API'si ekle" --format json
+```
+
 ### Sadece Güvenlik Tarama
 ```bash
 python scripts/guvenlik-tarayici.py --target /src --report-format json
@@ -196,18 +182,37 @@ python scripts/kod-kalitesi-analizoru.py --project . --output-format text --outp
 python scripts/entegrasyon-sistemi.py --test-notifications
 ```
 
+### GitHub PR ve Issue Akislari
+```bash
+# GitHub baglanti durumunu dogrula
+python -m logosfortuna integrations -- --github-connection
+
+# Configure edilen veya verilen repo icin PR listesini al
+python -m logosfortuna integrations -- --github-list-pulls --github-repo owner/repo --state open
+
+# Issue listesini al
+python -m logosfortuna integrations -- --github-list-issues --github-repo owner/repo --state open
+
+# Yeni issue olustur
+python -m logosfortuna integrations -- --github-create-issue --github-repo owner/repo --title "Bug raporu" --body "Detaylar"
+
+# Bir pull request'e yorum ekle
+python -m logosfortuna integrations -- --github-comment-pr --github-repo owner/repo --pull-number 12 --body "LGTM"
+```
+
 ### Modül Üzerinden Çalıştırma
 ```bash
 python -m logosfortuna integrations -- --status
 python -m logosfortuna security -- --target . --report-format json
 python -m logosfortuna quality -- --project . --output-format json
+python -m logosfortuna udiv -- --task "Kalite stratejisi planla"
 ```
 
 ## API Referansı
 
 ### Entegrasyon API
 ```python
-from scripts.entegrasyon_sistemi import get_integration_manager
+from logosfortuna.integration import get_integration_manager
 
 manager = get_integration_manager()
 
@@ -217,13 +222,22 @@ manager.send_notification("analysis_complete", {"score": 85})
 # GitHub yapılandır
 manager.configure_github("token", ["repo1", "repo2"])
 
+# GitHub baglantisini dogrula
+print(manager.get_github_connection_status())
+
+# PR ve issue akisini kullan
+print(manager.list_github_pull_requests("owner/repo"))
+print(manager.list_github_issues("owner/repo"))
+print(manager.create_github_issue("Yeni issue", "Detay", repository="owner/repo"))
+print(manager.comment_on_github_pull_request(12, "LGTM", repository="owner/repo"))
+
 # Slack yapılandır
 manager.configure_slack("webhook_url", "#channel")
 ```
 
 ### Güvenlik API
 ```python
-from scripts.guvenlik_tarayici import SecurityScanner
+from logosfortuna.security import SecurityScanner
 
 scanner = SecurityScanner("/path/to/project")
 results = scanner.tara_dosyalar()
@@ -232,19 +246,27 @@ print(scanner.rapor_olustur(results))
 
 ### Kalite API
 ```python
-from scripts.kod_kalitesi_analizoru import QualityAnalyzer
+from logosfortuna.quality import QualityAnalyzer
 
 analyzer = QualityAnalyzer("/path/to/project")
 result = analyzer.analiz_et()
 print(f"Kalite Skoru: {result['toplam_skor']}/100")
 ```
 
+### UDIV Runtime API
+```python
+from logosfortuna.udiv import UdivOrchestrator
+
+orchestrator = UdivOrchestrator("/path/to/workspace")
+session = orchestrator.build_session("Yeni entegrasyon akisini planla")
+print(session["current_phase"])
+```
+
 ## Desteklenen Ortamlar
 
-- ✅ **VS Code** (Copilot Chat)
-- ✅ **Claude Code** (CLI)
-- ✅ **GitHub Copilot**
-- ✅ **Cursor** ve diğer AI destekli editörler
+- ✅ **Claude Code**: `.claude-plugin/`, `commands/`, `agents/`, `skills/`
+- ✅ **VS Code / GitHub Copilot**: `.github/copilot-instructions.md`, `.github/prompts/`, `.github/agents/`, `.github/skills/`
+- ⚠️ **Diger editorler**: Markdown tabanli tanimlar yeniden kullanilabilir, ancak kesif davranisi host uygulamaya baglidir
 
 ## Lisans
 

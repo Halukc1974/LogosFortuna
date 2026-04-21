@@ -10,6 +10,12 @@ user-invocable: true
 
 LogosFortuna-Skill, her gorevi dort fazli bir donguyle cozer: **Anla → Tasarla → Uygula → Dogrula** (UDIV). Hicbir zaman anlamadan uygulamaya gecme. Her fazda kullanicidan onay al. Her oturumdan ogren.
 
+## Runtime Durumu
+
+- Bu skill'in repodaki somut runtime karsiligi `python -m logosfortuna udiv` komutudur; faz plani, guardrail ve mevcut agent yuzeyi buradan okunabilir.
+- `commands/` ve `agents/` altindaki markdown dosyalari host ortamin kesif/yonlendirme katmanidir; Python runtime model cagrilarini dogrudan yapmaz.
+- Auto-rollback, Big-O profiler, chaos engineering ve MCP graph persistence gibi ileri ozellikler bu repoda **kismi** durumdadir. Uctan uca destek yoksa bunu acikca belirt.
+
 ## Temel Kurallar
 
 1. **Asla anlamadan uygulama** — Faz 1 tamamlanmadan ve kullanici onay vermeden kod yazma
@@ -18,6 +24,7 @@ LogosFortuna-Skill, her gorevi dort fazli bir donguyle cozer: **Anla → Tasarla
 4. **Geri donus** — Bir faz basarisiz olursa onceki faza don
 5. **Ogrenme** — Her oturum sonunda ogrenimleri memory'ye kaydet
 6. **Constitution** — Proje anayasasina (.specify/memory/constitution.md) her zaman uy
+7. **Iddia uyumu** — Repoda tam karsiligi olmayan ileri ozellikleri "kismi" veya "planlanan" olarak etiketle
 
 ## Gorev Siniflandirma (UDIV Oncesi)
 
@@ -92,9 +99,9 @@ Birden fazla yaklasim uret (min 2, max 3), trade-off'lari degerlendir, en iyisin
 
 Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir. Her artim max 3 deneme.
 
-1. **Self-Healing (Auto-Rollback) Hazırlığı** — Kritik değişiklikler öncesi otomatik `git stash` veya temp branch (`logos-fortuna-temp`) oluştur
+1. **Self-Healing (Auto-Rollback) Hazırlığı** — Kritik degisikliklerde rollback planini hazirla; repodaki otomatik `git stash` / temp branch akisi henuz kismi oldugu icin kullaniciya gorunur kal
 2. **Artim Planlama** — En kucuk bagimsiz artimlara bol
-3. **Akıllı Bağlam Budama (Context Pruning)** — Uzun döngülerde token tasarrufu için geçmiş logları temizleyip kararları özetata bağla
+3. **Akıllı Bağlam Budama (Context Pruning)** — Uzun dongulerde eski loglari ozetle, ancak repoda otomatik summarization yoksa bunu elle ve acikca yap
 4. **Artimsal Uygulama** — `uygulama-ajansi` calistir, her artimdan sonra dogrula (syntax, test, lint)
 5. **Ilerleme Raporu** — Tamamlanan/kalan artimlar, sorunlar ve cozumler
 6. **→ KULLANICI ONAYI BEKLE**
@@ -106,12 +113,12 @@ Onaylanmis tasarimi kucuk, dogrulanmis artimlarla hayata gecir. Her artim max 3 
 Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
 
 1. **Kapsamli Dogrulama** — `dogrulama-ajansi` ile 5 boyut: fonksiyonel, anayasal, niyetsel, yapisal, regresyon
-2. **Canlı Maliyet/Performans Profiler** — Big-O notasyon analizi ve zaman/alan karmaşıklığı ile performans ölçümü
-3. **Proaktif Tehdit Avcılığı (Chaos Engineering)** — Kod kırılganlığını test etmek için Chaos ve Mutation Testing senaryoları tasarla
+2. **Canlı Maliyet/Performans Profiler** — Statik risk analizi ve mevcut kalite verileriyle performans risklerini raporla; tam Big-O profiler bu repoda kismi
+3. **Proaktif Tehdit Avcılığı (Chaos Engineering)** — Hazir harness yoksa chaos/mutation basligini tamamlanmis gibi sunma; onerilen senaryolar olarak raporla
 4. **Guvenlik Tarama** — `guvenlik-ajansi` ile OWASP Top 10 ve SANS Top 25 kontrolu
 5. **Kalite Analizi** — `kalite-ajansi` ile kod kalitesi skoru (0-100) ve iyileştirme önerileri
 6. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
-7. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet
+7. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet; MCP yoksa fallback tablosunu uygula
 8. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
@@ -175,9 +182,9 @@ LogosFortuna uluslararası kullanım için çoklu dil desteği sağlar. Destekle
 Detaylı entegrasyon yetenekleri için scriptlere bakın: [scripts/entegrasyon-sistemi.py](./scripts/entegrasyon-sistemi.py)
 
 **Desteklenen Entegrasyonlar:**
-- **GitHub**: PR otomasyonu, issue takibi, branch protection, workflow tetikleme
+- **GitHub**: Config ve repo listesi yonetimi hazir; PR otomasyonu ve branch protection host/tool bagimli ve su an kismi
 - **Slack/Discord**: Gerçek zamanlı bildirimler, batch gruplama, sessiz saatler
-- **CI/CD**: Jenkins/GitLab CI entegrasyonu, kalite gate'leri, rollback otomasyonu
+- **CI/CD**: Jenkins/GitLab CI config modeli mevcut; otomatik kalite gate ve rollback akislari kismi
 - **Webhook**: Özel webhook desteği, retry mekanizması, event filtreleme
 
 ## Güvenlik ve Kalite Kapıları
@@ -193,10 +200,10 @@ Detaylı doğrulama kriterleri: [references/kalite-kapilari.md](./references/kal
 
 - **Caching**: Analiz sonuçları 24h TTL ile cache'lenir, dosya değişikliklerinde invalidation
 - **Lazy Loading**: Sadece aktif/modified dosyalar analiz edilir
-- **Paralel İşleme**: Çok çekirdekli sistemlerde paralel analiz
+- **Paralel İşleme**: Tasarim hedefi olarak tanimli; repodaki Python runtime bunu henuz uctan uca zorlamaz
 
 ## Hata Yönetimi
 
 - **Sınıflandırma**: Kritik, kurtarılabilir, uyarı, bilgilendirme seviyeleri
-- **Otomatik Kurtarma**: Retry mekanizması, fallback sistemleri, state recovery, rollback
+- **Otomatik Kurtarma**: Retry mekanizmasi ve fallback sistemleri mevcut; tam state recovery / rollback akisi kismi
 - **İzleme**: Gerçek zamanlı monitoring, hata loglama, alert sistemi

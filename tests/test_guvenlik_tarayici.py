@@ -1,6 +1,6 @@
 """Tests for the security scanner (guvenlik-tarayici.py)."""
 
-from conftest import _load_skill_module
+from tests.conftest import _load_skill_module
 
 _mod = _load_skill_module("guvenlik_tarayici", "guvenlik-tarayici.py")
 GuvenlikTarayici = _mod.GuvenlikTarayici

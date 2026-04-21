@@ -43,6 +43,26 @@ class TestCLI:
         )
         assert result.returncode == 0
 
+    def test_udiv_subcommand(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "logosfortuna",
+                "udiv",
+                "--",
+                "--task",
+                "Yeni bir kalite stratejisi planla",
+                "--format",
+                "json",
+            ],
+            capture_output=True,
+            text=True,
+            cwd="/workspaces/LogosFortuna",
+        )
+        assert result.returncode == 0
+        assert '"current_phase": "anla"' in result.stdout
+
     def test_no_command_shows_help(self):
         result = subprocess.run(
             [sys.executable, "-m", "logosfortuna"],

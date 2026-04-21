@@ -3,7 +3,7 @@
 import json
 import time
 
-from conftest import _load_skill_module
+from tests.conftest import _load_skill_module
 
 _mod = _load_skill_module("cache_manager", "cache-manager.py")
 CacheManager = _mod.CacheManager

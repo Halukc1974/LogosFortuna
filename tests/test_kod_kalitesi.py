@@ -1,6 +1,6 @@
 """Tests for the code quality analyzer (kod-kalitesi-analizoru.py)."""
 
-from conftest import _load_skill_module
+from tests.conftest import _load_skill_module
 
 _mod = _load_skill_module("kod_kalitesi_analizoru", "kod-kalitesi-analizoru.py")
 KodKalitesiAnalizoru = _mod.KodKalitesiAnalizoru

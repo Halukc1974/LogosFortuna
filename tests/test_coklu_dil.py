@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from conftest import _load_skill_module
+from tests.conftest import _load_skill_module
 
 _mod = _load_skill_module("coklu_dil_sistemi", "coklu-dil-sistemi.py")
 CokluDilSistemi = _mod.CokluDilSistemi

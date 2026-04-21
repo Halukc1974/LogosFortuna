@@ -45,14 +45,66 @@ class KodKalitesiAnalizoru:
         # Toplam skor hesaplama
         self.analiz_sonucu["toplam_skor"] = self._toplam_skor_hesapla()
 
+        # Ensure detaylar keys exist with sensible defaults even if analysis functions returned early
+        detaylar = self.analiz_sonucu.setdefault("detaylar", {})
+        detaylar.setdefault("teknik", {
+            "avg_complexity": 0,
+            "duplication_ratio": 0,
+            "code_smells": 0,
+            "complexity_score": 0,
+            "duplication_score": 0,
+            "smell_score": 0
+        })
+        detaylar.setdefault("bakim", {
+            "total_functions": 0,
+            "long_functions": 0,
+            "function_score": 0,
+            "naming_score": 0,
+            "avg_dependencies": 0,
+            "dependency_score": 0
+        })
+        detaylar.setdefault("dokumentasyon", {
+            "total_functions": 0,
+            "documented_functions": 0,
+            "docstring_coverage": 0,
+            "docstring_score": 0,
+            "readme_exists": False,
+            "readme_quality": 0,
+            "readme_score": 0
+        })
+
         return self.analiz_sonucu
 
     def _python_dosyalarini_bul(self) -> List[Path]:
         """Python dosyalarını bul"""
         python_files = []
-        for file_path in self.project_root.rglob("*.py"):
-            if not any(skip in str(file_path) for skip in ["venv", "__pycache__", ".git", "test"]):
-                python_files.append(file_path)
+        try:
+            it = list(self.project_root.rglob("*.py"))
+        except Exception as e:
+            it = []
+        for file_path in it:
+            # Skip virtualenvs, caches and VCS dirs by exact path part matching
+            parts = [p.lower() for p in file_path.parts]
+            if any(skip in parts for skip in ["venv", "__pycache__", ".git"]):
+                continue
+            # Skip actual test files but not directories with 'test' in their tmp name
+            if file_path.name.startswith("test_") or file_path.name.endswith("_test.py"):
+                continue
+            python_files.append(file_path)
+        try:
+            if os.getenv('LOGOSFORTUNA_DEBUG'):
+                print(f"[kod-kalitesi] project_root exists: {self.project_root.exists()}")
+                try:
+                    print(f"[kod-kalitesi] project_root iterdir: {[str(p) for p in self.project_root.iterdir()]}")
+                except Exception as e:
+                    print(f"[kod-kalitesi] iterdir error: {e}")
+        except Exception:
+            pass
+        try:
+            if os.getenv('LOGOSFORTUNA_DEBUG'):
+                print(f"[kod-kalitesi] found python_files: {[str(p) for p in python_files]}")
+        except Exception:
+            pass
         return python_files
 
     def _test_dosyalarini_bul(self) -> List[Path]:
@@ -101,13 +153,16 @@ class KodKalitesiAnalizoru:
         # Ortalama complexity (ideal: <10)
         avg_complexity = toplam_complexity / len(python_files) if python_files else 0
         complexity_score = max(0, 100 - (avg_complexity - 5) * 10)  # 5-15 arası ideal
+        complexity_score = min(100, complexity_score)
 
         # Duplication analizi
         duplication_ratio = self._calculate_duplication(code_snippets)
         duplication_score = max(0, 100 - duplication_ratio * 20)  # %5 altında ideal
+        duplication_score = min(100, duplication_score)
 
         # Code smell skoru
         smell_score = max(0, 100 - code_smells * 2)  # Her smell 2 puan düşür
+        smell_score = min(100, smell_score)
 
         # Ağırlıklı ortalama
         teknik_skor = (complexity_score * 0.4 + duplication_score * 0.3 + smell_score * 0.3)
@@ -172,6 +227,7 @@ class KodKalitesiAnalizoru:
         # Dependency skoru
         avg_dependencies = dependency_complexity / len(python_files) if python_files else 0
         dependency_score = max(0, 100 - (avg_dependencies - 5) * 5)  # 5-15 arası ideal
+        dependency_score = min(100, dependency_score)
 
         # Ağırlıklı ortalama
         bakim_skor = (function_score * 0.4 + final_naming_score * 0.3 + dependency_score * 0.3)
@@ -248,6 +304,14 @@ class KodKalitesiAnalizoru:
 
         # README kontrolü
         readme_files = ['README.md', 'README.txt', 'README.rst']
+        # Debug info when requested
+        try:
+            if os.getenv('LOGOSFORTUNA_DEBUG'):
+                print(f"[kod-kalitesi] project_root={self.project_root}")
+                print("[kod-kalitesi] listing:", list(self.project_root.iterdir()) if self.project_root.exists() else [])
+        except Exception:
+            pass
+
         for readme in readme_files:
             if (self.project_root / readme).exists():
                 readme_exists = True

@@ -21,7 +21,7 @@ class CokluDilSistemi:
         else:
             self.translations_dir = Path(translations_dir)
 
-        self.translations_dir.mkdir(exist_ok=True)
+        self.translations_dir.mkdir(parents=True, exist_ok=True)
         self.current_language = self._detect_system_language()
         self.translations = self._load_translations()
 
@@ -146,6 +146,8 @@ class CokluDilSistemi:
                 # Varsayılan çevirileri dosyaya kaydet
                 with open(translation_file, 'w', encoding='utf-8') as f:
                     json.dump(default_translations[lang], f, indent=2, ensure_ascii=False)
+                # Also populate in-memory translations when creating defaults
+                translations[lang].update(default_translations[lang])
 
         return translations
 
