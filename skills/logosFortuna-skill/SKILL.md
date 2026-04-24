@@ -25,6 +25,36 @@ LogosFortuna-Skill, her gorevi dort fazli bir donguyle cozer: **Anla → Tasarla
 5. **Ogrenme** — Her oturum sonunda ogrenimleri memory'ye kaydet
 6. **Constitution** — Proje anayasasina (.specify/memory/constitution.md) her zaman uy
 7. **Iddia uyumu** — Repoda tam karsiligi olmayan ileri ozellikleri "kismi" veya "planlanan" olarak etiketle
+8. **Prompt Enrichment Pipeline** — Her UDIV islemi Faz 1'de uc katmanli zenginlestirmeyle baslar: (a) default suffix, (b) skill discovery, (c) web-search trust scoring
+
+## Prompt Enrichment Pipeline (Faz 1 Baslangicinda Otomatik)
+
+Her UDIV islemi asagidaki uc katmanli zenginlestirmeyi **otomatik** calistirir:
+
+### Katman 1: Default Meta-Prompt Suffix
+Her islemede (agent system prompt, karmasik karar noktasi, Anlama Ozeti) asagidaki Ingilizce cumle eklenir:
+```
+Think step by step and challenge your own assumptions.
+```
+→ Detay: [references/prompt-enrichment.md](./references/prompt-enrichment.md)
+
+### Katman 2: Skill Discovery + Hybrid Otomasyon
+Session'da yuklu skill'ler taranir, goreve uygun olan tespit edilir:
+- **BASIT skill** (brand-guidelines, doc-coauthoring vb.) → otomatik dahil + bildir
+- **KARMASIK skill** (frontend-design, ui-ux-pro-max vb.) → kullaniciya onay sor
+- **BILINMIYOR** → guvenli varsayim KARMASIK
+
+→ Detay: [references/skill-kesif-tablosu.md](./references/skill-kesif-tablosu.md)
+
+### Katman 3: Web-Search-Based Enrichment + Trust Scoring
+Her gorevde web search yapilir, sonuclar 0-100 guven skoruyla filtrelenir:
+- **>=90** (docs.anthropic.com, github.com/anthropics vb.) → otomatik dahil
+- **70-89** → kullaniciya onay sor
+- **<70** → disla
+
+→ Detay: [references/kaynak-guven-skorlama.md](./references/kaynak-guven-skorlama.md)
+
+**Onemli**: Bu pipeline constitution Operational Defaults'u revize eder — web enrichment artik OTOMATIK ve HER GOREVDE, ancak trust scoring + fallback ile korunur.
 
 ## Gorev Siniflandirma (UDIV Oncesi)
 
@@ -63,7 +93,7 @@ Kisir donguyu onlemek icin asagidaki limitler **kesinlikle** uygulanir:
 | Faz geri donusu (ayni faz cifti) | Max **2** | Kullaniciya eskale et |
 | Artim deneme sayisi (ayni artim) | Max **3** | DURDUR, kullaniciya raporla |
 | Dogrulama-Uygulama turu | Max **2** | Kalan sorunlari kullaniciya sun |
-| Faz 1 kesfetme adimi | Max **5** arac cagrisi | Mevcut bilgiyle ilerle |
+| Faz 1 kesfetme adimi | Max **7** arac cagrisi (enrichment pipeline dahil) | Mevcut bilgiyle ilerle |
 | Toplam UDIV dongu tekrari | Max **1** tam tekrar | Tamamen dur |
 
 **Sayac Takibi**: Her faz basinda geri_donus_sayaci=0 olarak basla. Her geri donuste +1 artir. Limite ulasinca kullaniciya acikla ve karar iste.
@@ -72,14 +102,17 @@ Kisir donguyu onlemek icin asagidaki limitler **kesinlikle** uygulanir:
 
 ### Faz 1: ANLA
 
-Kullanicinin gercekte ne istedigini ve mevcut sistemin nasil calistigini derinlemesine kavra. Maksimum 5 arac cagrisi. "Yeterli Anlama Kriterleri"nin en az 4/5'i karsilaninca dur.
+Kullanicinin gercekte ne istedigini ve mevcut sistemin nasil calistigini derinlemesine kavra. Maksimum **7** arac cagrisi (yeni enrichment pipeline dahil). "Yeterli Anlama Kriterleri"nin en az 4/5'i karsilaninca dur.
 
-1. **Baglam Yukle** — Memory graph, CLAUDE.md, constitution.md
-2. **Derin Kesfet** — `anlama-ajansi` agent'ini calistir, kod yollarini iz, bagimliliklari haritalandir
-3. **Yapilandirilmis Dusunme** — Karmasik isteklerde `mcp__sequential-thinking__sequentialthinking` kullan
-4. **Netlistirme** — Belirsiz noktalarda kullaniciya soru sor
-5. **Anlama Ozeti Sun** — Niyet, mevcut durum, etki alani, risk, on yaklasim
-6. **→ KULLANICI ONAYI BEKLE**
+1. **Default Suffix Aktivasyonu** — "Think step by step and challenge your own assumptions." tum agent cagrilarinda otomatik eklenir
+2. **Skill Discovery** — Session'daki yuklu skill listesi taranir, goreve uygun olan tespit edilir (hibrit kural)
+3. **Web Enrichment + Trust Scoring** — Brave Search / WebSearch ile zenginlestirme, >=90 skor otomatik, 70-89 onay ister
+4. **Baglam Yukle** — Memory graph, CLAUDE.md, constitution.md
+5. **Derin Kesfet** — `anlama-ajansi` agent'ini calistir, kod yollarini iz, bagimliliklari haritalandir
+6. **Yapilandirilmis Dusunme** — Karmasik isteklerde `mcp__sequential-thinking__sequentialthinking` kullan
+7. **Netlistirme** — Belirsiz noktalarda kullaniciya soru sor
+8. **Anlama Ozeti Sun** — Niyet, mevcut durum, etki alani, risk, on yaklasim, **enrichment raporu**
+9. **→ KULLANICI ONAYI BEKLE**
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 

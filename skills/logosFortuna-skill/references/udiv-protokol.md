@@ -8,9 +8,34 @@ UDIV (Anla-Tasarla-Uygula-Dogrula) dongusu, her gorevi dort fazda cozer. Bu belg
 
 ## Faz 1: ANLA - Detayli Protokol
 
-### Baglam Yukleme Sirasi
+### Prompt Enrichment Pipeline (Her UDIV'de Otomatik)
 
-1. **Memory Graph Kontrolu** (her zaman ilk)
+Faz 1 baslarken **once** asagidaki uc katmanli pipeline calisir:
+
+**Katman 1: Default Suffix**
+- Tum agent/system prompt'lara otomatik eklenir: "Think step by step and challenge your own assumptions."
+- Tekrari onle: Kullanici prompt'u zaten "step by step"/"challenge" iceriyorsa eklenmez.
+
+**Katman 2: Skill Discovery**
+- Session'daki available-skills listesi okunur
+- Anahtar kavramlar ile eslestirme yapilir
+- BASIT skill otomatik dahil; KARMASIK skill kullaniciya sorulur
+- Detay: [skill-kesif-tablosu.md](./skill-kesif-tablosu.md)
+
+**Katman 3: Web Enrichment**
+- Anahtar kavramlar icin web araması (max 1-3 arama)
+- Trust scoring (0-100) ile filtrasyon
+- >=90 otomatik, 70-89 onay, <70 disla
+- Detay: [kaynak-guven-skorlama.md](./kaynak-guven-skorlama.md)
+- Detay: [prompt-enrichment.md](./prompt-enrichment.md)
+
+**Ariz ve Fallback**:
+- Web search basarisizsa WebSearch fallback, sonra atla + bildir
+- Skill tarama basarisizsa uyari ver, normal UDIV devam
+
+### Baglam Yukleme Sirasi (Enrichment Sonrasi)
+
+1. **Memory Graph Kontrolu**
    - `mcp__memory__search_nodes` ile gorevle ilgili anahtar kelimeleri ara
    - Bulunan entity'lerin observation'larini oku
    - Onceki oturumlardaki kararlar, tercihler ve kaliplari not et
@@ -27,7 +52,7 @@ UDIV (Anla-Tasarla-Uygula-Dogrula) dongusu, her gorevi dort fazda cozer. Bu belg
 
 ### "Yeterli Anlama" Kriterleri
 
-**Kesfetme Limiti**: Maksimum **5 arac cagrisi** (Explore agent, Grep, Glob dahil). Bu limite ulasinca asagidaki kontrol listesini degerlendir.
+**Kesfetme Limiti**: Maksimum **7 arac cagrisi** (enrichment pipeline + Explore agent, Grep, Glob dahil). Bu limite ulasinca asagidaki kontrol listesini degerlendir.
 
 Asagidakilerin en az **4/5'ini** cevaplayabilmelisin (hepsini karsilamaya calisarak donguye girme):
 - [ ] Kullanicinin asil amaci ne? (soyledigi vs gercekte istedigi)
@@ -66,6 +91,17 @@ Belirsizlik var mi?
 **Bagimliliklar**: [bu degisikligin bagimli oldugu diger parcalar]
 **Riskler**: [dikkat edilmesi gereken noktalar]
 **On Yaklasim**: [ilk yaklasim fikri, detay Faz 2'de]
+
+### Enrichment Raporu (yeni)
+**Eslesen Skill'ler**:
+- [Skill adi] (BASIT/KARMASIK) — [otomatik dahil / onay bekliyor / red]
+
+**Web Enrichment Kaynaklari** (trust score >=90):
+- [Kaynak 1] (95) — [URL]
+- [Kaynak 2] (92) — [URL]
+
+**Orta-Skor Kaynaklar** (70-89, onay gerekli):
+- [Kaynak X] (82) — dahil edilsin mi?
 
 Bu anlamayi onayliyor musun, yoksa duzeltme/ekleme var mi?
 ```

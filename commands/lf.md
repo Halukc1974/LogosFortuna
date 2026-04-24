@@ -17,12 +17,27 @@ Bu gorev icin tam UDIV (Anla → Tasarla → Uygula → Dogrula) dongusunu basla
 LogosFortuna-Skill meta-orkestrasyon skill'ini etkinlestir ve asagidaki donguyu kesinlikle takip et:
 
 ### Faz 1: ANLA
-1. Memory graph'i kontrol et (`mcp__memory__search_nodes` ile gorevle ilgili anahtar kelimeleri ara)
-2. CLAUDE.md ve varsa `.specify/memory/constitution.md` dosyalarini oku
-3. `anlama-ajansi` agent'ini calistir — ilgili kod yollarini kesfet, bagimliliklari haritalandir
-4. Karmasik isteklerde `mcp__sequential-thinking__sequentialthinking` kullan
-5. Belirsizliklerde kullaniciya soru sor
-6. **Anlama Ozeti sun ve KULLANICI ONAYINI BEKLE**
+
+**Prompt Enrichment Pipeline** (yeni — her UDIV'de otomatik):
+1. **Default Suffix Aktivasyonu** — Tum agent cagrilarina otomatik ek:
+   `Think step by step and challenge your own assumptions.`
+2. **Skill Discovery** — Session'daki yuklu skill listesi taranir, goreve uygun olan tespit edilir:
+   - BASIT skill (brand-guidelines, doc-coauthoring vb.) → otomatik dahil + bildir
+   - KARMASIK skill (frontend-design, ui-ux-pro-max, mcp-builder vb.) → kullaniciya onay sor
+   - Detay: skills/logosFortuna-skill/references/skill-kesif-tablosu.md
+3. **Web Enrichment + Trust Scoring** — `mcp__brave-search__brave_web_search` (fallback: `WebSearch`):
+   - Trust skoru >=90 (Anthropic resmi dahil) → otomatik dahil
+   - 70-89 → kullaniciya onay sor
+   - <70 → disla
+   - Detay: skills/logosFortuna-skill/references/kaynak-guven-skorlama.md
+
+**Klasik UDIV Faz 1 adimlari**:
+4. Memory graph'i kontrol et (`mcp__memory__search_nodes` ile gorevle ilgili anahtar kelimeleri ara)
+5. CLAUDE.md ve varsa `.specify/memory/constitution.md` dosyalarini oku
+6. `anlama-ajansi` agent'ini calistir — ilgili kod yollarini kesfet, bagimliliklari haritalandir
+7. Karmasik isteklerde `mcp__sequential-thinking__sequentialthinking` kullan
+8. Belirsizliklerde kullaniciya soru sor
+9. **Anlama Ozeti sun** (enrichment raporu dahil) **ve KULLANICI ONAYINI BEKLE**
 
 Kullanici onayi olmadan Faz 2'ye gecme. "Devam et", "tamam", "evet" gibi acik onay bekle.
 
