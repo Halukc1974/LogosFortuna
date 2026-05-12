@@ -1,12 +1,45 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "logosFortuna-skill",
-  "version": "1.0.1",
-  "description": "LogosFortuna-Skill - Kisisel iteratif anlama ve uygulama meta-orkestrasyon sistemi. UDIV dongusu ile derin anlama, tasarim, artimsal uygulama ve dogrulama.",
+  "version": "1.1.0",
+  "description": "LogosFortuna-Skill - UDIV (Anla-Tasarla-Uygula-Dogrula) meta-orkestrasyon sistemi. Otomatik skill kesfi, MCP bundling ve onayli-otomatik baglik plugin kurulumu ile.",
   "author": {
     "name": "Haluk Celebi"
   },
   "homepage": "https://github.com/Halukc1974/LogosFortuna",
   "repository": "https://github.com/Halukc1974/LogosFortuna",
   "license": "MIT",
-  "keywords": ["meta-skill", "orkestrasyon", "iteratif", "kisisel", "udiv"]
+  "keywords": ["meta-skill", "orkestrasyon", "iteratif", "udiv", "auto-install", "mcp-bundling"],
+  "userConfig": {
+    "brave_api_key": {
+      "type": "string",
+      "title": "Brave Search API Key",
+      "description": "Web enrichment (Faz 1) icin Brave Search anahtari. Bos birakirsan web search WebSearch fallback'ine duser. https://brave.com/search/api/ uzerinden ucretsiz alabilirsin.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    },
+    "default_language": {
+      "type": "string",
+      "title": "Varsayilan Dil",
+      "description": "dil-ajansi icin varsayilan dil kodu (tr, en, de, fr). Otomatik tespit varsa override eder.",
+      "required": false,
+      "default": "tr"
+    },
+    "auto_install_policy": {
+      "type": "string",
+      "title": "Otomatik Plugin Kurulum Politikasi",
+      "description": "approved-auto (onerilen): her kurulum oncesi sor | autonomous: sormadan kur (riskli) | suggest-only: sadece komut goster, calistirma | whitelist: sadece guvenli liste otomatik",
+      "required": false,
+      "default": "approved-auto"
+    },
+    "telemetry_enabled": {
+      "type": "boolean",
+      "title": "Telemetri Etkin",
+      "description": "UDIV faz sureleri, geri donus sayilari ve agent basarisi .specify/telemetry/*.jsonl dosyasina yazilir. Tum veri lokal kalir, hicbir yere gonderilmez.",
+      "required": false,
+      "default": true
+    }
+  },
+  "dependencies": []
 }

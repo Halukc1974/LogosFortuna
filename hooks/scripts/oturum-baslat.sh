@@ -47,8 +47,26 @@ if [ -d "$MEMORY_DIR" ]; then
   OUTPUT+="Memory: ${MEMORY_COUNT} kayit\n"
 fi
 
+# 4. MCP saglik kontrolu (yeni — Sprint 2)
+MCP_STATUS=""
+# Brave Search API key kontrolu (Faz 1 web enrichment icin)
+if [ -z "${BRAVE_API_KEY:-}" ] && [ -z "${CLAUDE_PLUGIN_OPTION_BRAVE_API_KEY:-}" ]; then
+  MCP_STATUS+="ℹ️ Brave API key yok → web enrichment WebSearch fallback'ine duser\n"
+fi
+
+# Memory dizin yazilabilir mi?
+TELEMETRY_DIR="./.specify/telemetry"
+if [ ! -d "$TELEMETRY_DIR" ]; then
+  MCP_STATUS+="ℹ️ Telemetri dizini henuz yok ($TELEMETRY_DIR) — ilk UDIV calismasinda olusturulacak\n"
+fi
+
+if [ -n "$MCP_STATUS" ]; then
+  OUTPUT+="\n--- MCP/Yetenek Durumu ---\n"
+  OUTPUT+="$MCP_STATUS"
+fi
+
 OUTPUT+="━━━━━━━━━━━━━━━━━━━━━━━━\n"
-OUTPUT+="Komutlar: /lf (tam dongu) | /lf-anla | /lf-dogrula"
+OUTPUT+="Komutlar: /lf (tam dongu) | /lf-anla | /lf-dogrula | /lf-rapor | /lf-update"
 
 # Cikti olarak goster
 if [ -n "$OUTPUT" ]; then

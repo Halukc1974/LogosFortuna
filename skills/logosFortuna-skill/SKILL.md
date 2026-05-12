@@ -1,6 +1,6 @@
 ---
 name: logosFortuna-skill
-description: "UDIV meta-orkestrasyon sistemi. Use when: lf mode, derin analiz, dikkatli uygulama, once anla sonra yap, iteratif gelistir, tam dongu baslat, orkestre et, UDIV, karmasik cok asamali gorev. Anla → Tasarla → Uygula → Dogrula dongusunu calistirir."
+description: "UDIV meta-orkestrasyon sistemi. Use when: lf mode, derin analiz, dikkatli uygulama, once anla sonra yap, iteratif gelistir, tam dongu baslat, orkestre et, UDIV, karmasik cok asamali gorev, eksik MCP otomatik kur, skill auto-discover. Anla → Tasarla → Uygula → Dogrula dongusunu calistirir; gorev sirasinda eksik plugin/MCP'leri Onayli-Otomatik politika ile tespit edip kullaniciya teklif eder."
 user-invocable: true
 ---
 
@@ -25,11 +25,22 @@ LogosFortuna-Skill, her gorevi dort fazli bir donguyle cozer: **Anla → Tasarla
 5. **Ogrenme** — Her oturum sonunda ogrenimleri memory'ye kaydet
 6. **Constitution** — Proje anayasasina (.specify/memory/constitution.md) her zaman uy
 7. **Iddia uyumu** — Repoda tam karsiligi olmayan ileri ozellikleri "kismi" veya "planlanan" olarak etiketle
-8. **Prompt Enrichment Pipeline** — Her UDIV islemi Faz 1'de uc katmanli zenginlestirmeyle baslar: (a) default suffix, (b) skill discovery, (c) web-search trust scoring
+8. **Prompt Enrichment Pipeline** — Her UDIV islemi Faz 1'de **dort** katmanli zenginlestirmeyle baslar: (0) MCP need-detection, (a) default suffix, (b) skill discovery, (c) web-search trust scoring
+9. **Onayli-Otomatik plugin/MCP kurulumu** — Eksik tespit edildiginde `AskUserQuestion` ile sor, onaylanirsa Bash ile `claude plugin install` veya `claude mcp add` cagir. Asla sessizce kurma. (`auto_install_policy` default: `approved-auto`)
+10. **Telemetri** — Her faz/agent calismasi `.specify/telemetry/*.jsonl`'a yazilir (`telemetry_enabled = true` ise). Veri lokal kalir, hicbir yere gonderilmez.
 
 ## Prompt Enrichment Pipeline (Faz 1 Baslangicinda Otomatik)
 
-Her UDIV islemi asagidaki uc katmanli zenginlestirmeyi **otomatik** calistirir:
+Her UDIV islemi asagidaki **dort** katmanli zenginlestirmeyi **otomatik** calistirir:
+
+### Katman 0: MCP Need-Detection (yeni — 2026-05-12)
+Faz 1'in en basinda, anahtar eylemler kullaniciyi prompt'undan ayiklanir ve gerekli MCP/plugin'ler tespit edilir:
+- Eksik MCP varsa → `auto-install-protokol` ile `AskUserQuestion` yapilir
+- Kullanici politikasina gore (`approved-auto` / `autonomous` / `whitelist` / `suggest-only`) aksiyon alinir
+- Bash: `claude plugin install <name>@claude-plugins-official` veya `claude mcp add <name> <cmd>`
+
+→ Detay: [references/mcp-need-detector.md](./references/mcp-need-detector.md)
+→ Detay: [references/auto-install-protokol.md](./references/auto-install-protokol.md)
 
 ### Katman 1: Default Meta-Prompt Suffix
 Her islemede (agent system prompt, karmasik karar noktasi, Anlama Ozeti) asagidaki Ingilizce cumle eklenir:
@@ -42,9 +53,10 @@ Think step by step and challenge your own assumptions.
 Session'da yuklu skill'ler taranir, goreve uygun olan tespit edilir:
 - **BASIT skill** (brand-guidelines, doc-coauthoring vb.) → otomatik dahil + bildir
 - **KARMASIK skill** (frontend-design, ui-ux-pro-max vb.) → kullaniciya onay sor
-- **BILINMIYOR** → guvenli varsayim KARMASIK
+- **BILINMIYOR** → `skill-classifier-ajansi` ile LLM-driven siniflandirma yapilir, sonuc Memory MCP'ye cache'lenir (ikinci karsilasmada cache hit)
 
 → Detay: [references/skill-kesif-tablosu.md](./references/skill-kesif-tablosu.md)
+→ Agent: [../../agents/skill-classifier-ajansi.agent.md](../../agents/skill-classifier-ajansi.agent.md)
 
 ### Katman 3: Web-Search-Based Enrichment + Trust Scoring
 Her gorevde web search yapilir, sonuclar 0-100 guven skoruyla filtrelenir:
@@ -234,6 +246,41 @@ Detaylı doğrulama kriterleri: [references/kalite-kapilari.md](./references/kal
 - **Caching**: Analiz sonuçları 24h TTL ile cache'lenir, dosya değişikliklerinde invalidation
 - **Lazy Loading**: Sadece aktif/modified dosyalar analiz edilir
 - **Paralel İşleme**: Tasarim hedefi olarak tanimli; repodaki Python runtime bunu henuz uctan uca zorlamaz
+
+## Komut Referansi (Sprint 2 ile genisletildi)
+
+| Komut | Aciklama |
+|-------|----------|
+| `/lf` | Tam UDIV dongusu (Anla → Tasarla → Uygula → Dogrula) |
+| `/lf-anla` | Sadece Faz 1: derin anlama ve baglam haritasi |
+| `/lf-dogrula` | Sadece Faz 4: mevcut degisikleri 5 boyutlu dogrula |
+| `/lf-rapor [gun]` | Telemetri ozeti (default son 7 gun) — faz sureleri, geri donus oranlari, install onerileri |
+| `/lf-update` | GitHub'da yeni surum var mi kontrol et, onaylanirsa guncelle |
+
+## Yeni Mimarı Bilesenler (2026-05-12)
+
+### Auto-Install + Skill Discovery + Telemetri
+
+```
+Faz 1 ANLA basinda otomatik:
+  ├── Katman 0: MCP Need-Detector → eksik MCP tespit → AskUserQuestion → claude mcp add
+  ├── Katman 1: Default suffix injection (Think step by step + challenge assumptions)
+  ├── Katman 2: Skill discovery + skill-classifier-ajansi (LLM siniflandirma)
+  └── Katman 3: Web enrichment + trust scoring
+
+Her faz tamamlandiginda:
+  └── telemetry-writer.py → .specify/telemetry/udiv-runs-*.jsonl
+```
+
+### Iliskili Yeni Dosyalar
+
+- `references/auto-install-protokol.md` — Onayli-Otomatik kurulum karar agaci
+- `references/mcp-need-detector.md` — eylem→MCP haritasi
+- `references/self-update.md` — surum kontrol ve guncelleme
+- `agents/skill-classifier-ajansi.agent.md` — LLM-driven skill siniflandirici
+- `scripts/telemetry-writer.py` — JSONL telemetri writer + summarize CLI
+- `scripts/evals/golden-tests.jsonl` — UDIV protokolu kendi kendini test eden golden set
+- `scripts/evals/runner.py` — eval runner
 
 ## Hata Yönetimi
 
