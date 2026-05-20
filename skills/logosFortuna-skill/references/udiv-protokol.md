@@ -4,6 +4,14 @@
 
 UDIV (Anla-Tasarla-Uygula-Dogrula) dongusu, her gorevi dort fazda cozer. Bu belge her fazin detayli protokolunu, karar agaclarini ve basarisizlik senaryolarini tanimlar.
 
+**v2.0.0 (Mythos-inspired) notu**: Bu protokol Trust-Tier (L0-L3) otonomi sistemi ile birlikte calisir. Faz gecislerinde "kullanici onayi" davranisi tier'a baglidir:
+- **L0** (default): her faz sonunda onay bekle (mevcut davranis)
+- **L1**: Faz 1 ve 2 birlestir, Faz 3-4 ayri onay
+- **L2**: tum fazlar otomatik, `kirik-ajansi` Faz 4'te zorunlu gate
+- **L3**: L2 + feature branch'e otomatik commit/push (ana branch ASLA)
+
+Detay: [trust-tier-otonomi.md](./trust-tier-otonomi.md)
+
 ---
 
 ## Faz 1: ANLA - Detayli Protokol
@@ -220,6 +228,22 @@ Artim 5/5: ⏳ Frontend entegrasyonu
 
 ## Faz 4: DOGRULA ve OGREN - Detayli Protokol
 
+### Faz 4 Akisi (v2.0.0)
+
+```
+1. dogrulama-ajansi → 5 boyutlu klasik dogrulama
+2. guvenlik-ajansi → OWASP Top 10 + SANS Top 25
+3. kalite-ajansi → 0-100 kalite skoru
+4. kirik-ajansi (YENI, mandatory L2/L3) → 7 saldiri vektoru self-red-team
+   ├── GREEN → 5. ogrenme-ajansi
+   └── RED (critical) → DUR, L0'a indir, operatore eskale
+5. ogrenme-ajansi → tercihleri/kaliplari memory'ye kaydet
+6. Constitution Quality Gate kontrolleri:
+   ├── Her bulgu remediation ile mi geliyor? (Prensip 8)
+   └── L2/L3 ise kirik-ajansi GREEN mi? (Quality Gate)
+7. Son rapor + (L3 ise) feature branch'e otomatik commit
+```
+
 ### 5 Boyutlu Dogrulama + Ek Testler
 
 **1. Fonksiyonel Dogrulama**
@@ -252,6 +276,30 @@ Artim 5/5: ⏳ Frontend entegrasyonu
 - Mevcut islevsellik bozuldu mu?
 - Diger modullere yan etki var mi?
 - Performans etkisi var mi?
+
+### Adversarial Gate (v2.0.0)
+
+**Sadece L2 ve L3'te zorunlu**; L0/L1'de opsiyonel ama tavsiye edilir.
+
+`kirik-ajansi` 7 saldiri vektorunu (V1-V7, detay: [kirik-ajansi.agent.md](../../../agents/kirik-ajansi.agent.md)) artimlar uzerinde dener:
+- **0 critical, ≤2 high** → GREEN, devam et
+- **1+ critical** → HARD FAIL, L0'a indir, Faz 3'e geri don
+- **>2 high** → SOFT FAIL, operatore eskale et, kararla devam
+
+Bu gate Constitution Quality Gate "Self-red-team pass for elevated tiers" ihlali olusur ise UDIV finalize olmaz.
+
+### Patching Velocity Gate (Constitution Prensip 8)
+
+Her bulgu icin (kucuk/buyuk fark etmez) raporda asagidaki uc alan **zorunludur**:
+
+```
+Finding: [bulgunun ne oldugu]
+Severity: [critical/high/medium/low]
+Remediation: [acik yamanin ne olacagi — dosya, satir, kod ornegi]
+SLA: [tahmini patch suresi: now / sprint / backlog]
+```
+
+`Remediation: TBD` veya `Remediation: investigate further` kabul edilmez. Soyle bir bulgu varsa Faz 3'e geri donulur (Quality Gate ihlali).
 
 ### Guven Skorlama
 

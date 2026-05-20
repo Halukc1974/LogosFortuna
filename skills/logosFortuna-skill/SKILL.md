@@ -18,16 +18,20 @@ LogosFortuna-Skill, her gorevi dort fazli bir donguyle cozer: **Anla → Tasarla
 
 ## Temel Kurallar
 
-1. **Asla anlamadan uygulama** — Faz 1 tamamlanmadan ve kullanici onay vermeden kod yazma
-2. **Her fazda onay** — Faz gecisleri kullanicinin acik onayiyla olur
+1. **Asla anlamadan uygulama** — Faz 1 tamamlanmadan kod yazma
+2. **Her fazda onay** — Faz gecisleri kullanicinin acik onayiyla olur **tier'a baglidir**: L0'da her faz, L1'de 3-4, L2/L3'te sadece final. Detay: [trust-tier-otonomi.md](./references/trust-tier-otonomi.md)
 3. **Kucuk artimlar** — Buyuk degisiklikler yerine kucuk, dogrulanabilir adimlar
 4. **Geri donus** — Bir faz basarisiz olursa onceki faza don
 5. **Ogrenme** — Her oturum sonunda ogrenimleri memory'ye kaydet
-6. **Constitution** — Proje anayasasina (.specify/memory/constitution.md) her zaman uy
+6. **Constitution** — Proje anayasasina (.specify/memory/constitution.md, v2.0.0) her zaman uy
 7. **Iddia uyumu** — Repoda tam karsiligi olmayan ileri ozellikleri "kismi" veya "planlanan" olarak etiketle
 8. **Prompt Enrichment Pipeline** — Her UDIV islemi Faz 1'de **dort** katmanli zenginlestirmeyle baslar: (0) MCP need-detection, (a) default suffix, (b) skill discovery, (c) web-search trust scoring
 9. **Onayli-Otomatik plugin/MCP kurulumu** — Eksik tespit edildiginde `AskUserQuestion` ile sor, onaylanirsa Bash ile `claude plugin install` veya `claude mcp add` cagir. Asla sessizce kurma. (`auto_install_policy` default: `approved-auto`)
 10. **Telemetri** — Her faz/agent calismasi `.specify/telemetry/*.jsonl`'a yazilir (`telemetry_enabled = true` ise). Veri lokal kalir, hicbir yere gonderilmez.
+11. **Trust-Tier otonomi** *(yeni v2.0.0)* — Operator gorev basinda L0-L3 beyan eder; sistem risk artislarinda otomatik dusurur, asla yukseltmez. Detay: [trust-tier-otonomi.md](./references/trust-tier-otonomi.md)
+12. **Differential capability per agent** *(yeni v2.0.0)* — Her agent en dar tool yuzeyiyle calisir; dogrulayan yazamaz, kiran degistiremez. Detay: [differential-capability.md](./references/differential-capability.md)
+13. **Patching velocity > discovery rate** *(yeni v2.0.0)* — Her bulgu remediation ile gelir; salt rapor kabul edilmez. Constitution Prensip 8.
+14. **Self-red-team mandatory for L2/L3** *(yeni v2.0.0)* — `kirik-ajansi` Faz 4'te 7 saldiri vektoru calistirir; critical bulguda L0'a iner. Constitution Quality Gate.
 
 ## Prompt Enrichment Pipeline (Faz 1 Baslangicinda Otomatik)
 
@@ -162,9 +166,11 @@ Sonucu cok boyutlu dogrula ve ogrenimleri kaydet.
 3. **Proaktif Tehdit Avcılığı (Chaos Engineering)** — Hazir harness yoksa chaos/mutation basligini tamamlanmis gibi sunma; onerilen senaryolar olarak raporla
 4. **Guvenlik Tarama** — `guvenlik-ajansi` ile OWASP Top 10 ve SANS Top 25 kontrolu
 5. **Kalite Analizi** — `kalite-ajansi` ile kod kalitesi skoru (0-100) ve iyileştirme önerileri
-6. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
-7. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet; MCP yoksa fallback tablosunu uygula
-8. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi
+6. **Self-Red-Team** *(yeni v2.0.0)* — `kirik-ajansi` ile 7 saldiri vektoru. **L2/L3 icin zorunlu gate**. Critical bulgu → otomatik L0'a iner. Detay: [agents/kirik-ajansi.agent.md](../../agents/kirik-ajansi.agent.md)
+7. **Patching Velocity kontrolu** *(yeni v2.0.0)* — Her bulgu remediation ile mi geliyor? Constitution Prensip 8 ihlali varsa Faz 3'e don.
+8. **Sorun Cozumu** — Kritik → Faz 3'e don (max 2 tur), kucuk → yerinde duzelt
+9. **Ogrenme** — `ogrenme-ajansi` ile tercihleri, kaliplari, basarili yaklasimlari kaydet; MCP yoksa fallback tablosunu uygula
+10. **Son Rapor** — Ne yapildi, nasil dogrulandi, ne ogrendi + (L3 ise) feature branch'e otomatik commit/push
 
 → Detay: [references/udiv-protokol.md](./references/udiv-protokol.md)
 
@@ -257,7 +263,29 @@ Detaylı doğrulama kriterleri: [references/kalite-kapilari.md](./references/kal
 | `/lf-rapor [gun]` | Telemetri ozeti (default son 7 gun) — faz sureleri, geri donus oranlari, install onerileri |
 | `/lf-update` | GitHub'da yeni surum var mi kontrol et, onaylanirsa guncelle |
 
-## Yeni Mimarı Bilesenler (2026-05-12)
+## Yeni Mimarı Bilesenler (2026-05-20) — Mythos-Inspired v2.0.0
+
+### Trust-Tier Otonomi + Self-Red-Teaming + Differential Capability
+
+```
+Tier seciminden Faz 4'e:
+  ├── Operator beyani: L0 (default) / L1 / L2 / L3 + opt elevated-trust
+  ├── Faz gecisleri tier'a gore (L0 her faz, L2/L3 kesintisiz)
+  ├── Auto-downgrade tetikleyicileri sinyal-tabanli
+  └── Faz 4'te:
+      ├── dogrulama-ajansi (mevcut)
+      ├── kirik-ajansi (YENI, L2/L3 mandatory gate)
+      └── Patching Velocity check (Constitution Prensip 8)
+```
+
+### Iliskili Yeni Dosyalar (v2.0.0)
+
+- `references/trust-tier-otonomi.md` — L0-L3 otonomi tanimi, auto-downgrade tetikleyicileri, beyan sintaksi
+- `references/differential-capability.md` — Agent rol-bazli tool allowlist matrisi, execute komut whitelist'i
+- `agents/kirik-ajansi.agent.md` — Self-red-teamer, 7 saldiri vektoru kataloğu
+- `.specify/memory/constitution.md` — v2.0.0: Prensip 8, 9, 10 eklendi; Quality Gate'lere "findings ship with remediations" ve "self-red-team pass" eklendi
+
+### Onceki Mimari Bilesenler (2026-05-12)
 
 ### Auto-Install + Skill Discovery + Telemetri
 
